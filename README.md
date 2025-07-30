@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Lab Tracker - Chemical Inventory Management System
 
 A comprehensive full-stack web application for tracking laboratory chemical usage with intelligent inventory management, real-time analytics, and professional user experience. Built with Python Flask backend and React frontend.
@@ -305,3 +306,6 @@ npm run build
 - **Performance**: Optimized database queries and caching
 
 ---
+=======
+# lab-tracker
+>>>>>>> cb26b23da1e382d20d35a44009bf36ad5e92e299
