@@ -1,0 +1,112 @@
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+from sqlalchemy import Index
+
+db = SQLAlchemy()
+
+# Storage Management Model
+class Storage(db.Model):
+    __tablename__ = 'storage'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    类型 = db.Column(db.String(100), nullable=False, index=True)  # Type (化学品, 试剂, etc.)
+    产品名 = db.Column(db.String(200), nullable=False, index=True)  # Product Name
+    数量及数量单位 = db.Column(db.String(50), nullable=False)  # Quantity with Unit (e.g., "100g", "50ml")
+    存放地 = db.Column(db.String(100), nullable=False)  # Storage Location
+    CAS号 = db.Column(db.String(50), nullable=True, index=True)  # CAS Number
+    当前库存量 = db.Column(db.Float, nullable=False, default=0.0)  # Current Stock (in grams)
+    单位 = db.Column(db.String(10), nullable=False, default='g')  # Unit
+    创建时间 = db.Column(db.DateTime, default=datetime.utcnow)
+    更新时间 = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship to usage records
+    usage_records = db.relationship('UsageRecord', backref='storage_item', lazy=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            '类型': self.类型,
+            '产品名': self.产品名,
+            '数量及数量单位': self.数量及数量单位,
+            '存放地': self.存放地,
+            'CAS号': self.CAS号,
+            '当前库存量': self.当前库存量,
+            '单位': self.单位,
+            '创建时间': self.创建时间.isoformat() if self.创建时间 else None,
+            '更新时间': self.更新时间.isoformat() if self.更新时间 else None
+        }
+
+# Updated Usage Record Model with Chinese fields and storage link
+class UsageRecord(db.Model):
+    __tablename__ = 'usage_records'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    storage_id = db.Column(db.Integer, db.ForeignKey('storage.id'), nullable=True)  # Link to storage
+    
+    # Chinese field names as specified
+    类型 = db.Column(db.String(100), nullable=False)  # Type
+    产品名 = db.Column(db.String(200), nullable=False)  # Product Name
+    数量及数量单位 = db.Column(db.String(50), nullable=False)  # Original Quantity
+    存放地 = db.Column(db.String(100), nullable=False)  # Storage Location
+    CAS号 = db.Column(db.String(50), nullable=True)  # CAS Number
+    使用人 = db.Column(db.String(100), nullable=False, index=True)  # User
+    使用日期 = db.Column(db.Date, nullable=False, index=True)  # Usage Date
+    使用量_g = db.Column(db.Float, nullable=False)  # Amount Used (in grams)
+    余量_g = db.Column(db.Float, nullable=False)  # Remaining Amount (in grams)
+    备注 = db.Column(db.Text, nullable=True)  # Notes
+    创建时间 = db.Column(db.DateTime, default=datetime.utcnow)
+    更新时间 = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'storage_id': self.storage_id,
+            '类型': self.类型,
+            '产品名': self.产品名,
+            '数量及数量单位': self.数量及数量单位,
+            '存放地': self.存放地,
+            'CAS号': self.CAS号,
+            '使用人': self.使用人,
+            '使用日期': self.使用日期.isoformat() if self.使用日期 else None,
+            '使用量_g': self.使用量_g,
+            '余量_g': self.余量_g,
+            '备注': self.备注,
+            '创建时间': self.创建时间.isoformat() if self.创建时间 else None,
+            '更新时间': self.更新时间.isoformat() if self.更新时间 else None,
+        }
+
+class Personnel(db.Model):
+    __tablename__ = 'personnel'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    department = db.Column(db.String(100))
+    role = db.Column(db.String(50))
+    email = db.Column(db.String(120))
+    phone = db.Column(db.String(20))
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'department': self.department,
+            'role': self.role,
+            'email': self.email,
+            'phone': self.phone,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+    
+
+# Storage table indexes
+Index('idx_storage_类型', Storage.类型)
+Index('idx_storage_产品名', Storage.产品名)
+Index('idx_storage_CAS号', Storage.CAS号)
+
+# Updated usage records indexes with Chinese fields
+Index('idx_usage_records_使用人_使用日期', UsageRecord.使用人, UsageRecord.使用日期)
+Index('idx_usage_records_产品名_使用日期', UsageRecord.产品名, UsageRecord.使用日期) 
