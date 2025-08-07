@@ -14,45 +14,15 @@ storage_bp = Blueprint('storage', __name__)
 
 @storage_bp.route('/api/storage', methods=['GET'])
 def get_storage_items():
-    """Get paginated storage items with optional filtering"""
-    try:
-        from utils.query_helpers import apply_search, apply_filters, apply_sort, paginate
-        # Get query parameters
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 20, type=int)
-        search = request.args.get('search', '')
-        type_filter = request.args.get('type', '')
-        location_filter = request.args.get('location', '')
-        sort_by = request.args.get('sort_by', '产品名')
-        sort_order = request.args.get('sort_order', 'asc')
+    """Paginated storage list (delegates to core.list_endpoint)."""
+    from core.base_resource import list_endpoint
+    return list_endpoint(
+        model=Storage,
+        schema_func=lambda x: x.to_dict(),
+        search_columns=['产品名', '类型', '存放地', 'CAS号']
+    )
         
-        # Base query
-        query = Storage.query
         
-        # Generic helpers replace duplicate logic
-        query = apply_search(query, Storage, search, ['产品名', '类型', '存放地', 'CAS号'])
-        query = apply_filters(query, Storage, {
-            '类型': type_filter,
-            '存放地': location_filter
-        })
-        query = apply_sort(query, Storage, sort_by, sort_order)
-        
-        # Paginate
-        pagination = paginate(query, page, per_page)
-        
-        return jsonify({
-            'items': [item.to_dict() for item in pagination.items],
-            'total': pagination.total,
-            'page': page,
-            'per_page': per_page,
-            'pages': pagination.pages,
-            'has_next': pagination.has_next,
-            'has_prev': pagination.has_prev
-        }), 200
-        
-    except Exception as e:
-        logger.error(f"Error getting storage items: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
 
 @storage_bp.route('/api/storage', methods=['POST'])
 def create_storage_item():

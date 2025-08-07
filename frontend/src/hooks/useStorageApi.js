@@ -80,6 +80,9 @@ export const useStorageApi = () => {
   const searchAvailableStorage = (q = '', limit = 10) =>
     request(() => ApiService.get('/api/storage/available', { q, limit }));
 
+  const getUsageRecords = (params = {}) =>
+    request(() => ApiService.get('/api/usage-records', params));
+
   const bulkUpdateStorage = (updates) =>
     request(() => ApiService.post('/api/storage/bulk-update', { updates }));
 
@@ -101,6 +104,7 @@ export const useStorageApi = () => {
     getUsageHistory,
     getInventoryTrends,
     bulkUpdateStorage,
-    searchAvailableStorage
+    searchAvailableStorage,
+    getUsageRecords
   };
 }; 

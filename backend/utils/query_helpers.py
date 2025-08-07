@@ -7,7 +7,7 @@ still live inside individual route handlers.
 from typing import List, Dict, Any, Tuple, Optional
 
 from sqlalchemy import or_, asc, desc
-from flask_sqlalchemy import BaseQuery
+from sqlalchemy.orm import Query as BaseQuery
 
 
 def apply_search(query: BaseQuery, model, search_term: str, search_columns: List[str]):
