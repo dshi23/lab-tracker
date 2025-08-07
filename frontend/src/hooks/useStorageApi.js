@@ -224,6 +224,20 @@ export const useStorageApi = () => {
     }
   };
 
+  const searchAvailableStorage = async (q = '', limit = 10) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await storageAPI.searchAvailable(q, limit);
+      return response;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const bulkUpdateStorage = async (updates) => {
     setLoading(true);
     setError(null);
@@ -255,6 +269,7 @@ export const useStorageApi = () => {
     getInventoryAlerts,
     getUsageHistory,
     getInventoryTrends,
-    bulkUpdateStorage
+    bulkUpdateStorage,
+    searchAvailableStorage
   };
 }; 

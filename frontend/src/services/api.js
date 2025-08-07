@@ -142,6 +142,9 @@ export const storageAPI = {
   // Use storage item (unified endpoint)
   useStorageItem: (id, data) => api.post(`/api/storage/${id}/use`, data),
   
+  // Quick search for available storage items (Add Record page)
+  searchAvailable: (query, limit = 10) => api.get('/api/storage/available', { params: { q: query, limit } }),
+  
   // Get low stock items
   getLowStockItems: (threshold = 10) => 
     api.get('/api/storage/low-stock', { params: { threshold } }),

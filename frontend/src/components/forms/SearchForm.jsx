@@ -2,15 +2,23 @@ import { useState } from 'react'
 import { useQuery } from 'react-query'
 import { analyticsAPI } from '../../services/api'
 
-const SearchForm = ({ onFilterChange }) => {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [filters, setFilters] = useState({
+import { useRef, useEffect } from 'react'
+
+const SearchForm = ({
+  onFilterChange,
+  initialFilters = {
     search: '',
     personnel: '',
     drug: '',
     start_date: '',
     end_date: ''
-  })
+  },
+  searchPlaceholder = 'Search...',
+  showTypeFilter = false,
+  showLocationFilter = false
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [filters, setFilters] = useState(initialFilters)
 
   // Fetch autocomplete data
   const { data: autocompleteData } = useQuery(
@@ -21,10 +29,21 @@ const SearchForm = ({ onFilterChange }) => {
     }
   )
 
+  const debounceTimer = useRef(null)
+
   const handleFilterChange = (field, value) => {
     const newFilters = { ...filters, [field]: value }
     setFilters(newFilters)
-    onFilterChange(newFilters)
+
+    // Debounce only the search field to avoid excessive API calls
+    if (field === 'search') {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current)
+      debounceTimer.current = setTimeout(() => {
+        onFilterChange(newFilters)
+      }, 400)
+    } else {
+      onFilterChange(newFilters)
+    }
   }
 
   const handleClearFilters = () => {
@@ -39,6 +58,9 @@ const SearchForm = ({ onFilterChange }) => {
     onFilterChange(clearedFilters)
   }
 
+  // Cleanup debounce timer on unmount
+  useEffect(() => () => clearTimeout(debounceTimer.current), [])
+
   return (
     <div className="card">
       {/* Basic Search */}
@@ -46,7 +68,7 @@ const SearchForm = ({ onFilterChange }) => {
         <div className="flex-1">
           <input
             type="text"
-            placeholder="Search records..."
+            placeholder={searchPlaceholder}
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
             className="input-field"

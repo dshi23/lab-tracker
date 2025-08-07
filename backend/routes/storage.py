@@ -598,6 +598,70 @@ def download_storage_template():
         logger.error(f"Error creating storage template: {str(e)}")
         return jsonify({'error': 'Template creation failed'}), 500
 
+@storage_bp.route('/api/storage/available', methods=['GET'])
+def search_available_storage():
+    """Quick search available storage items (current_quantity > 0) with optional query and limit"""
+    try:
+        q = request.args.get('q', '', type=str)
+        limit = request.args.get('limit', 10, type=int)
+        include_low_stock = request.args.get('include_low', 'true').lower() == 'true'
+
+        # Base query: items with current stock > 0
+        query = Storage.query.filter(Storage.当前库存量 > 0)
+
+        # Optional fuzzy / ilike search across name, location and unit
+        if q:
+            wildcard = f"%{q}%"
+            query = query.filter(
+                or_(
+                    Storage.产品名.ilike(wildcard),
+                    Storage.存放地.ilike(wildcard),
+                    Storage.单位.ilike(wildcard)
+                )
+            )
+
+        # Limit results for quick selector
+        items = query.order_by(Storage.产品名.asc()).limit(limit).all()
+
+        def compute_availability(item):
+            """Return availability_status based on percentage remaining"""
+            try:
+                total_qty, unit = StorageService.parse_quantity(item.数量及数量单位)
+                # Convert to grams if necessary for comparison with 当前库存量 (stored in grams)
+                total_qty_in_grams = StorageService.convert_to_grams(total_qty, unit)
+                if total_qty_in_grams == 0:
+                    return 'unknown'
+                ratio = item.当前库存量 / total_qty_in_grams
+            except Exception:
+                # Fallback if parsing fails
+                ratio = None
+
+            if ratio is None:
+                return 'available' if item.当前库存量 > 0 else 'out_of_stock'
+            if ratio == 0:
+                return 'out_of_stock'
+            elif ratio < 0.2:
+                return 'low_stock'
+            else:
+                return 'available'
+
+        results = []
+        for item in items:
+            availability_status = compute_availability(item)
+            # Optionally exclude low stock items if not requested
+            if not include_low_stock and availability_status != 'available':
+                continue
+            results.append({
+                'availability_status': availability_status,
+                'match_score': 1.0,
+                **item.to_dict()
+            })
+
+        return jsonify({'results': results, 'total_count': len(results)})
+    except Exception as e:
+        logger.error(f"Error searching available storage: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 @storage_bp.route('/api/storage/bulk-update', methods=['POST'])
 def bulk_update_storage():
     """Bulk update storage quantities"""

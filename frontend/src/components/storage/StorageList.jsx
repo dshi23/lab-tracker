@@ -85,9 +85,7 @@ const StorageList = () => {
     }));
   };
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+
 
   return (
     <div className="space-y-4">
@@ -207,38 +205,49 @@ const StorageList = () => {
       </div>
 
       {/* Storage Items Grid */}
-      {storage.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {storage.map(item => (
-            <StorageCard
-              key={item.id}
-              item={item}
-              onDelete={handleDelete}
-              onEdit={handleEdit}
-              onUse={handleUse}
-            />
-          ))}
-        </div>
+      {loading && storage.length === 0 ? (
+        <LoadingSpinner text="加载中..." />
       ) : (
-        <div className="text-center py-12 text-gray-500">
-          <div className="text-6xl mb-4">📦</div>
-          <p className="text-lg mb-2">暂无库存数据</p>
-          <p className="text-sm">添加第一个库存项目或导入现有数据</p>
-          <div className="mt-4 space-x-2">
-            <button
-              onClick={() => navigate('/storage/add')}
-              className="btn-primary"
-            >
-              添加库存
-            </button>
-            <button
-              onClick={() => navigate('/storage/import')}
-              className="btn-secondary"
-            >
-              批量导入
-            </button>
-          </div>
-        </div>
+        <>
+          {loading && (
+            <div className="w-full flex justify-center my-4">
+              <LoadingSpinner size="sm" text="" />
+            </div>
+          )}
+          {storage.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {storage.map(item => (
+                <StorageCard
+                  key={item.id}
+                  item={item}
+                  onDelete={handleDelete}
+                  onEdit={handleEdit}
+                  onUse={handleUse}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-6xl mb-4">📦</div>
+              <p className="text-lg mb-2">暂无库存数据</p>
+              <p className="text-sm">添加第一个库存项目或导入现有数据</p>
+              <div className="mt-4 space-x-2">
+                <button
+                  onClick={() => navigate('/storage/add')}
+                  className="btn-primary"
+                >
+                  添加库存
+                </button>
+                <button
+                  onClick={() => navigate('/storage/import')}
+                  className="btn-secondary"
+                >
+                  批量导入
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Pagination */}

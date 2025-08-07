@@ -6,6 +6,7 @@ import { useStorageApi } from '../hooks/useStorageApi'
 import UsageForm from '../components/forms/UsageForm'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import SuccessDialog from '../components/ui/SuccessDialog'
+import StorageSearchSelector from '../components/storage/StorageSearchSelector'
 
 const AddRecord = () => {
   const navigate = useNavigate()
@@ -168,6 +169,12 @@ const AddRecord = () => {
         {!selectedStorageItem && (
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">选择库存项目</h3>
+
+            {/* Smart Search Selector */}
+            <div className="mb-6">
+              <StorageSearchSelector onStorageSelect={handleStorageItemSelect} />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {storageData?.items?.map((item) => (
                 <div
