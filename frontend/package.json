@@ -18,9 +18,7 @@
     "date-fns": "^2.30.0",
     "react-hook-form": "^7.45.4",
     "react-query": "^3.39.3",
-    "workbox-webpack-plugin": "^7.0.0",
-    "chart.js": "^4.4.0",
-    "react-chartjs-2": "^5.2.0"
+    "workbox-webpack-plugin": "^7.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.3",
@@ -46,4 +44,4 @@
       "last 1 safari version"
     ]
   }
-} 
+}

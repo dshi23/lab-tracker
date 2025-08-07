@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from 'react-query'
 import { Link } from 'react-router-dom'
-import { recordsAPI } from '../services/api'
+import { useRecordsApi } from '../hooks/useRecordsApi'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import RecordCard from '../components/lists/RecordCard'
 import SearchForm from '../components/forms/SearchForm'
@@ -17,9 +17,11 @@ const Records = () => {
     end_date: ''
   })
 
+  const { getRecords } = useRecordsApi()
+
   const { data, isLoading, error } = useQuery(
     ['records', filters],
-    () => recordsAPI.getRecords(filters),
+    () => getRecords(filters),
     {
       keepPreviousData: true,
       staleTime: 2 * 60 * 1000, // 2 minutes

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-import { recordsAPI } from '../services/api'
+import { useRecordsApi } from '../hooks/useRecordsApi'
 import UsageForm from '../components/forms/UsageForm'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 
@@ -12,9 +12,11 @@ const EditRecord = () => {
   const [error, setError] = useState(null)
 
   // Fetch the record to edit
+  const { getRecord, updateRecord } = useRecordsApi();
+
   const { data: record, isLoading, error: fetchError } = useQuery(
     ['record', id],
-    () => recordsAPI.getRecord(id),
+    () => getRecord(id),
     {
       staleTime: 5 * 60 * 1000, // 5 minutes
     }
@@ -22,7 +24,7 @@ const EditRecord = () => {
 
   // Update record mutation
   const updateRecordMutation = useMutation(
-    (data) => recordsAPI.updateRecord(id, data),
+    (data) => updateRecord(id, data),
     {
       onSuccess: (response) => {
         // Invalidate and refetch relevant queries

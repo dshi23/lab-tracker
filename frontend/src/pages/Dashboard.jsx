@@ -1,7 +1,8 @@
 import { useQuery } from 'react-query'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
-import { analyticsAPI, recordsAPI } from '../services/api'
+import { useAnalyticsApi } from '../hooks/useAnalyticsApi'
+import { useRecordsApi } from '../hooks/useRecordsApi'
 import { useStorageApi } from '../hooks/useStorageApi'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import StatCard from '../components/ui/StatCard'
@@ -10,20 +11,23 @@ import StorageCard from '../components/storage/StorageCard'
 
 const Dashboard = () => {
   const { getStorageItems, getUsageRecords } = useStorageApi()
+  const { getDashboardStats } = useAnalyticsApi()
 
   // Fetch dashboard data
   const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useQuery(
     ['dashboard', 30],
-    () => analyticsAPI.getDashboardStats(30),
+    () => getDashboardStats(30),
     {
       staleTime: 5 * 60 * 1000, // 5 minutes
     }
   )
 
+  const { getRecentRecords } = useRecordsApi()
+
   // Fetch recent records
   const { data: recentData, isLoading: recentLoading, error: recentError } = useQuery(
     ['recent-records', 5],
-    () => recordsAPI.getRecentRecords(5),
+    () => getRecentRecords(5),
     {
       staleTime: 2 * 60 * 1000, // 2 minutes
     }

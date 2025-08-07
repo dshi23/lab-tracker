@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from 'react-query'
 import { format } from 'date-fns'
-import { recordsAPI } from '../../services/api'
+import { useRecordsApi } from '../../hooks/useRecordsApi'
 
 const RecordCard = ({ record, compact = false }) => {
   const navigate = useNavigate()
@@ -17,9 +17,10 @@ const RecordCard = ({ record, compact = false }) => {
     }
   }
 
+  const { deleteRecord } = useRecordsApi();
   // Delete record mutation
   const deleteRecordMutation = useMutation(
-    () => recordsAPI.deleteRecord(record.id),
+    () => deleteRecord(record.id),
     {
       onSuccess: () => {
         // Invalidate and refetch relevant queries

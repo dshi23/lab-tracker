@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-import { recordsAPI } from '../services/api'
+import { useRecordsApi } from '../hooks/useRecordsApi'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { format } from 'date-fns'
 
@@ -12,9 +12,11 @@ const RecordDetail = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [error, setError] = useState(null)
 
+  const { getRecord, deleteRecord } = useRecordsApi();
+
   const { data: record, isLoading, error: fetchError } = useQuery(
     ['record', id],
-    () => recordsAPI.getRecord(id),
+    () => getRecord(id),
     {
       staleTime: 5 * 60 * 1000, // 5 minutes
     }
@@ -22,7 +24,7 @@ const RecordDetail = () => {
 
   // Delete record mutation
   const deleteRecordMutation = useMutation(
-    () => recordsAPI.deleteRecord(id),
+    () => deleteRecord(id),
     {
       onSuccess: (response) => {
         // Invalidate and refetch relevant queries

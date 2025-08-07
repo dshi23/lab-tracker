@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from sqlalchemy import or_, desc, asc
+from sqlalchemy import or_, asc, desc
 from datetime import datetime, date
 import logging
 
@@ -47,27 +47,16 @@ def get_records():
         sort_by = request.args.get('sort_by', '使用日期')
         sort_order = request.args.get('sort_order', 'desc')
         
-        # Build query - only storage-integrated records
+        from utils.query_helpers import apply_search, apply_filters, apply_sort, paginate
+        # Build base query - only storage-integrated records
         query = UsageRecord.query.filter(UsageRecord.storage_id.isnot(None))
-        
-        # Apply filters (search Chinese fields)
-        if search:
-            search_filter = or_(
-                UsageRecord.产品名.ilike(f'%{search}%'),
-                UsageRecord.使用人.ilike(f'%{search}%'),
-                UsageRecord.类型.ilike(f'%{search}%'),
-                UsageRecord.存放地.ilike(f'%{search}%'),
-                UsageRecord.备注.ilike(f'%{search}%')
-            )
-            query = query.filter(search_filter)
-        
-        # Personnel filter
-        if personnel:
-            query = query.filter(UsageRecord.使用人.ilike(f'%{personnel}%'))
-        
-        # Product filter
-        if product:
-            query = query.filter(UsageRecord.产品名.ilike(f'%{product}%'))
+
+        # Generic helpers for search + simple filters
+        query = apply_search(query, UsageRecord, search, ['产品名', '使用人', '类型', '存放地', '备注'])
+        query = apply_filters(query, UsageRecord, {
+            '使用人': personnel,
+            '产品名': product
+        })
         
         # Date filters
         if start_date:
@@ -80,25 +69,12 @@ def get_records():
             if parsed_end:
                 query = query.filter(UsageRecord.使用日期 <= parsed_end)
         
-        # Apply sorting
-        sort_column = None
-        if hasattr(UsageRecord, sort_by):
-            sort_column = getattr(UsageRecord, sort_by)
-        else:
-            sort_column = UsageRecord.使用日期
-        
-        if sort_order.lower() == 'asc':
-            query = query.order_by(asc(sort_column))
-        else:
-            query = query.order_by(desc(sort_column))
-        
-        # Apply pagination
+        # Apply sorting via helper (fallback column inside helper is ignored if column missing)
+        query = apply_sort(query, UsageRecord, sort_by, sort_order)
+
+        # Pagination via helper
         try:
-            paginated = query.paginate(
-                page=page, 
-                per_page=per_page, 
-                error_out=False
-            )
+            paginated = paginate(query, page, per_page)
             
             # Get unique values for filter dropdowns
             personnel_list = db.session.query(UsageRecord.使用人).filter(

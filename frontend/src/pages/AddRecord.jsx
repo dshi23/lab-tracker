@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient, useQuery } from 'react-query'
-import { recordsAPI } from '../services/api'
+import { useRecordsApi } from '../hooks/useRecordsApi'
 import { useStorageApi } from '../hooks/useStorageApi'
 import UsageForm from '../components/forms/UsageForm'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
@@ -27,8 +27,10 @@ const AddRecord = () => {
     }
   )
 
+  const { createRecord } = useRecordsApi();
+
   const createRecordMutation = useMutation(
-    (data) => recordsAPI.createRecord(data),
+    (data) => createRecord(data),
     {
       onSuccess: (response) => {
         // Defensive: log the response for debugging

@@ -42,36 +42,6 @@ api.interceptors.response.use(
   }
 )
 
-// Records API
-export const recordsAPI = {
-  // Get paginated records
-  getRecords: (params = {}) => api.get('/api/records', { params }),
-  
-  // Get single record
-  getRecord: (id) => api.get(`/api/records/${id}`),
-  
-  // Create record
-  createRecord: (data) => api.post('/api/records', data),
-  
-  // Update record
-  updateRecord: (id, data) => api.put(`/api/records/${id}`, data),
-  
-  // Delete record
-  deleteRecord: (id) => api.delete(`/api/records/${id}`),
-  
-  // Search records
-  searchRecords: (query, limit = 10) => 
-    api.get('/api/records/search', { params: { q: query, limit } }),
-  
-  // Get recent records
-  getRecentRecords: (limit = 10) => 
-    api.get('/api/records/recent', { params: { limit } }),
-  
-  // Get records by personnel
-  getRecordsByPersonnel: (name, params = {}) => 
-    api.get(`/api/records/by-personnel/${encodeURIComponent(name)}`, { params }),
-}
-
 // Import/Export API
 export const importExportAPI = {
   // Import Excel file

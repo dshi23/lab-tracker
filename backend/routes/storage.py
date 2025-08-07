@@ -16,6 +16,7 @@ storage_bp = Blueprint('storage', __name__)
 def get_storage_items():
     """Get paginated storage items with optional filtering"""
     try:
+        from utils.query_helpers import apply_search, apply_filters, apply_sort, paginate
         # Get query parameters
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
@@ -25,37 +26,19 @@ def get_storage_items():
         sort_by = request.args.get('sort_by', '产品名')
         sort_order = request.args.get('sort_order', 'asc')
         
-        # Build query
+        # Base query
         query = Storage.query
         
-        # Apply filters
-        if search:
-            search_filter = or_(
-                Storage.产品名.ilike(f'%{search}%'),
-                Storage.类型.ilike(f'%{search}%'),
-                Storage.存放地.ilike(f'%{search}%'),
-                Storage.CAS号.ilike(f'%{search}%')
-            )
-            query = query.filter(search_filter)
-        
-        if type_filter:
-            query = query.filter(Storage.类型.ilike(f'%{type_filter}%'))
-        
-        if location_filter:
-            query = query.filter(Storage.存放地.ilike(f'%{location_filter}%'))
-        
-        # Apply sorting
-        if hasattr(Storage, sort_by):
-            sort_column = getattr(Storage, sort_by)
-            if sort_order == 'desc':
-                query = query.order_by(desc(sort_column))
-            else:
-                query = query.order_by(asc(sort_column))
+        # Generic helpers replace duplicate logic
+        query = apply_search(query, Storage, search, ['产品名', '类型', '存放地', 'CAS号'])
+        query = apply_filters(query, Storage, {
+            '类型': type_filter,
+            '存放地': location_filter
+        })
+        query = apply_sort(query, Storage, sort_by, sort_order)
         
         # Paginate
-        pagination = query.paginate(
-            page=page, per_page=per_page, error_out=False
-        )
+        pagination = paginate(query, page, per_page)
         
         return jsonify({
             'items': [item.to_dict() for item in pagination.items],

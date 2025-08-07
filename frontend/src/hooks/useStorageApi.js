@@ -1,256 +1,87 @@
-import { useState } from 'react';
-import { storageAPI, usageRecordsAPI, inventoryAPI } from '../services/api';
+import ApiService from '../services/ApiService';
+import useApiRequest from './useApiRequest';
 
 export const useStorageApi = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { loading, error, request } = useApiRequest();
 
-  const getStorageItems = async (filters = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.getStorageItems(filters);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const getStorageItems = (filters = {}) =>
+    request(() => ApiService.get('/api/storage', filters));
 
-  const getStorageItem = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.getStorageItem(id);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+    const getStorageItem = (id) =>
+    request(() => ApiService.get(`/api/storage/${id}`));
 
-  const createStorageItem = async (data) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.createStorageItem(data);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+    const createStorageItem = (data) =>
+    request(() => ApiService.post('/api/storage', data));
 
-  const updateStorageItem = async (id, data) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.updateStorageItem(id, data);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+    const updateStorageItem = (id, data) =>
+    request(() => ApiService.put(`/api/storage/${id}`, data));
 
-  const deleteStorageItem = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.deleteStorageItem(id);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+    const deleteStorageItem = (id) =>
+    request(() => ApiService.delete(`/api/storage/${id}`));
 
-  const recordUsage = async (storageId, usageData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Use the new unified endpoint for better unit consistency
-      const response = await storageAPI.useStorageItem(storageId, usageData);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const recordUsage = (storageId, usageData) =>
+    request(() => ApiService.post(`/api/storage/${storageId}/use`, usageData));
 
-  const importStorageExcel = async (file) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.importStorageExcel(file);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+  const importStorageExcel = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request(() => ApiService.post('/api/storage/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }));
   };
 
   const exportStorageExcel = async (filters = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.exportStorageExcel(filters);
-      
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `storage_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      return true;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    const response = await request(() => ApiService.get('/api/storage/export', {
+      params: filters,
+      responseType: 'blob'
+    }));
+
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `storage_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    return true;
   };
 
   const downloadStorageTemplate = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.downloadStorageTemplate();
-      
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'storage_template.xlsx');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      return true;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    const response = await request(() => ApiService.get('/api/storage/template', {
+      responseType: 'blob'
+    }));
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'storage_template.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    return true;
   };
 
-  const getInventoryDashboard = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await inventoryAPI.getInventoryDashboard();
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const getInventoryDashboard = () =>
+    request(() => ApiService.get('/api/inventory/dashboard'));
 
-  const getLowStockItems = async (threshold = 10) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.getLowStockItems(threshold);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const getLowStockItems = (threshold = 10) =>
+    request(() => ApiService.get('/api/storage/low-stock', { threshold }));
 
-  const getInventoryAlerts = async (params = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await inventoryAPI.getInventoryAlerts(params);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const getInventoryAlerts = (params = {}) =>
+    request(() => ApiService.get('/api/inventory/alerts', params));
 
-  const getUsageHistory = async (storageId, params = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await inventoryAPI.getUsageHistory(storageId, params);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const getUsageHistory = (storageId, params = {}) =>
+    request(() => ApiService.get(`/api/inventory/usage-history/${storageId}`, params));
 
-  const getInventoryTrends = async (params = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await inventoryAPI.getInventoryTrends(params);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const getInventoryTrends = (params = {}) =>
+    request(() => ApiService.get('/api/inventory/trends', params));
 
-  const searchAvailableStorage = async (q = '', limit = 10) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.searchAvailable(q, limit);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const searchAvailableStorage = (q = '', limit = 10) =>
+    request(() => ApiService.get('/api/storage/available', { q, limit }));
 
-  const bulkUpdateStorage = async (updates) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await storageAPI.bulkUpdateStorage(updates);
-      return response;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const bulkUpdateStorage = (updates) =>
+    request(() => ApiService.post('/api/storage/bulk-update', { updates }));
 
   return {
     loading,

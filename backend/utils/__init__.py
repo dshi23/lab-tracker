@@ -7,12 +7,10 @@ These are pure functions that don't depend on application state.
 
 # Import all utility modules
 from .date_parser import DateParser
-from .volume_converter import VolumeConverter
+
 
 # Utility instances for easy access
 date_parser = DateParser()
-volume_converter = VolumeConverter()
-
 # Common utility functions
 def is_valid_file_extension(filename, allowed_extensions):
     """Check if file has a valid extension"""
@@ -30,9 +28,7 @@ def sanitize_filename(filename):
 
 __all__ = [
     'DateParser',
-    'VolumeConverter',
-    'date_parser',
-    'volume_converter', 
+    'date_parser', 
     'is_valid_file_extension',
     'sanitize_filename'
 ] 
