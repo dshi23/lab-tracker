@@ -211,7 +211,7 @@ const UsageForm = () => {
           
           <div className="bg-blue-50 p-3 rounded">
             <div className="text-blue-600 mb-1">当前库存</div>
-            <div className="font-semibold text-blue-700">{availableStock.toFixed(3)}g</div>
+            <div className="font-semibold text-blue-700">{availableStock.toFixed(3)}{item['单位']}</div>
           </div>
           
           <div className="bg-gray-50 p-3 rounded">
@@ -268,7 +268,7 @@ const UsageForm = () => {
           {/* 使用量 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              使用量 (g) *
+              使用量 ({item['单位']}) *
             </label>
             <input
               type="number"
@@ -292,7 +292,7 @@ const UsageForm = () => {
               <div className="mt-2 p-3 bg-blue-50 rounded text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-blue-700">
-                    使用后余量: <strong>{Math.max(0, remainingStock).toFixed(3)}g</strong>
+                    使用后余量: <strong>{Math.max(0, remainingStock).toFixed(3)}{item['单位']}</strong>
                   </span>
                   {remainingStock < 0 ? (
                     <span className="text-red-600 font-medium">❌ 超出库存量</span>

@@ -106,8 +106,8 @@ class StorageExcelProcessor:
                         errors.append(f"Row {index + 2}: Product '{storage_data['产品名']}' already exists")
                         continue
                     
-                    # Create storage item
-                    storage_item = StorageService.create_storage_item(storage_data)
+                    # Create storage item without unit conversion
+                    storage_item = StorageService.create_storage_item_with_units(storage_data)
                     storage_items.append(storage_item)
                     success_count += 1
                     

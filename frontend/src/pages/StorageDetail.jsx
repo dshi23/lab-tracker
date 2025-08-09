@@ -171,7 +171,7 @@ const StorageDetail = () => {
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">当前库存</label>
             <p className={`text-lg font-semibold ${status.color}`}>
-              {item['当前库存量'].toFixed(3)}g
+              {item['当前库存量'].toFixed(3)}{item['单位']}
             </p>
           </div>
           

@@ -81,7 +81,7 @@ const StorageCard = ({ item, onDelete, onEdit, onUse }) => {
         <div className="flex justify-between">
           <span className="text-gray-600">当前库存:</span>
           <span className={`font-medium ${status.color}`}>
-            {item['当前库存量'].toFixed(2)}g
+            {parseFloat(item['当前库存量']).toFixed(2)}{item['单位'] || ''}
           </span>
         </div>
         <div className="flex justify-between">

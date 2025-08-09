@@ -171,7 +171,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> */}
         {/* Recent Records */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
@@ -200,7 +200,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Recent Storage Usage */}
+        {/* Recent Storage Usage
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Recent Storage Usage</h2>
@@ -236,8 +236,8 @@ const Dashboard = () => {
               </Link>
             </div>
           )}
-        </div>
-      </div>
+        </div> */}
+      {/* </div> */}
 
       {/* Low Stock Items */}
       {lowStockItems.length > 0 && (
@@ -263,7 +263,7 @@ const Dashboard = () => {
                     <p className="text-xs text-red-700">{item['类型']}</p>
                   </div>
                   <span className="bg-red-200 text-red-800 text-xs px-2 py-1 rounded flex-shrink-0">
-                    {item['当前库存量'].toFixed(1)}g
+                    {item['当前库存量'].toFixed(1)}{item['单位'] || ''}
                   </span>
                 </div>
                 <div className="text-xs text-red-600">

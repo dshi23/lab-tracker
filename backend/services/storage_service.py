@@ -18,17 +18,15 @@ class StorageService:
         # Parse quantity string (e.g., "100g", "50ml") 
         quantity, unit = StorageService.parse_quantity(data['数量及数量单位'])
         
-        # Convert to grams if needed
-        quantity_in_grams = StorageService.convert_to_grams(quantity, unit)
-        
+        # Preserve original quantity and unit without any conversion
         storage_item = Storage(
             类型=data['类型'],
             产品名=data['产品名'],
             数量及数量单位=data['数量及数量单位'],
             存放地=data['存放地'],
             CAS号=data.get('CAS号'),
-            当前库存量=quantity_in_grams,
-            单位='g'
+            当前库存量=quantity,  # Store exact quantity as provided
+            单位=unit             # Store exact unit as provided
         )
         
         db.session.add(storage_item)
@@ -57,17 +55,12 @@ class StorageService:
             storage_item.产品名 = data['产品名']
             updated_fields.append('产品名')
         if '数量及数量单位' in data:
-            storage_item.数量及数量单位 = data['数量及数量单位']
-            # Recalculate current stock if original quantity changed
-            try:
-                quantity, unit = StorageService.parse_quantity(data['数量及数量单位'])
-                quantity_in_grams = StorageService.convert_to_grams(quantity, unit)
-                # Only update current stock if it's not explicitly provided
-                if '当前库存量' not in data:
-                    storage_item.当前库存量 = quantity_in_grams
-                updated_fields.append('数量及数量单位')
-            except ValueError as e:
-                raise ValueError(f"Invalid quantity format: {str(e)}")
+            quantity, unit = StorageService.parse_quantity(data['数量及数量单位'])
+            # Only update current stock if it's not explicitly provided
+            if '当前库存量' not in data:
+                storage_item.当前库存量 = quantity  # Preserve original quantity
+                storage_item.单位 = unit           # Update unit to match
+            updated_fields.append('数量及数量单位')
         if '存放地' in data:
             storage_item.存放地 = data['存放地']
             updated_fields.append('存放地')
@@ -465,9 +458,12 @@ class StorageService:
             try:
                 original_quantity, unit = StorageService.parse_quantity(item.数量及数量单位)
                 original_in_grams = StorageService.convert_to_grams(original_quantity, unit)
-                
+
+                # Convert current stock to grams using its stored unit for a fair comparison
+                current_in_grams = StorageService.convert_to_grams(item.当前库存量, item.单位)
+
                 if original_in_grams > 0:
-                    percentage = (item.当前库存量 / original_in_grams) * 100
+                    percentage = (current_in_grams / original_in_grams) * 100
                     if percentage <= threshold_percentage:
                         low_stock_items.append(item)
             except ValueError:

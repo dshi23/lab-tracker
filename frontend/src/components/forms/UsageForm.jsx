@@ -56,7 +56,7 @@ const UsageForm = ({
             </div>
             <div className="min-w-0">
               <span className="font-medium text-blue-700">当前库存:</span>
-              <p className="text-blue-900">{selectedStorageItem['当前库存量'].toFixed(3)}g</p>
+              <p className="text-blue-900">{selectedStorageItem['当前库存量'].toFixed(3)}{selectedStorageItem['单位']}</p>
             </div>
             <div className="min-w-0">
               <span className="font-medium text-blue-700">存放地:</span>
@@ -111,7 +111,7 @@ const UsageForm = ({
             </div>
           </div>
           <p className="text-sm text-gray-600 mt-2">
-            💡 当前库存: {selectedStorageItem ? selectedStorageItem['当前库存量'].toFixed(3) : '0'}g
+            💡 当前库存: {selectedStorageItem ? selectedStorageItem['当前库存量'].toFixed(3) : '0'}{selectedStorageItem ? selectedStorageItem['单位'] : ''}
           </p>
         </div>
 
@@ -179,7 +179,7 @@ const UsageForm = ({
                 <p className="font-medium">库存集成模式</p>
                 <p className="text-sm mt-1">
                   将自动从库存项目 "{selectedStorageItem['产品名']}" 中扣除使用量，并生成完整的使用追踪记录。
-                  当前库存: {selectedStorageItem['当前库存量'].toFixed(3)}g
+                  当前库存: {selectedStorageItem['当前库存量'].toFixed(3)}{selectedStorageItem['单位']}
                 </p>
               </div>
             </div>

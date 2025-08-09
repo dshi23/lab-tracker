@@ -580,11 +580,18 @@ def search_available_storage():
             """Return availability_status based on percentage remaining"""
             try:
                 total_qty, unit = StorageService.parse_quantity(item.数量及数量单位)
-                # Convert to grams if necessary for comparison with 当前库存量 (stored in grams)
-                total_qty_in_grams = StorageService.convert_to_grams(total_qty, unit)
-                if total_qty_in_grams == 0:
+
+                # Since 当前库存量 is stored in the original unit, compare directly
+                if total_qty == 0:
                     return 'unknown'
-                ratio = item.当前库存量 / total_qty_in_grams
+
+                # Defensive check: if units somehow differ, fall back to conversion
+                current_qty = (
+                    item.当前库存量 if unit == item.单位
+                    else StorageService.convert_between_units(item.当前库存量, item.单位, unit)
+                )
+
+                ratio = current_qty / total_qty
             except Exception:
                 # Fallback if parsing fails
                 ratio = None
