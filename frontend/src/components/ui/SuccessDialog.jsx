@@ -91,10 +91,10 @@ const SuccessDialog = ({
                     <span className="font-medium">{recordData.使用人}</span>
                   </div>
                 )}
-                {recordData.使用量_g && (
+                {recordData.使用量 && (
                   <div className="flex justify-between">
                     <span>Amount:</span>
-                    <span className="font-medium">{recordData.使用量_g}g</span>
+                    <span className="font-medium">{recordData.使用量}{recordData.单位 || ''}</span>
                   </div>
                 )}
                 {recordData.使用日期 && (

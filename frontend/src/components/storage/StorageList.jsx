@@ -68,7 +68,7 @@ const StorageList = () => {
   };
 
   const handleEdit = (item) => {
-    navigate(`/storage/edit/${item.id}`);
+    navigate(`/storage/${item.id}/edit`);
   };
 
   const handleUse = (item) => {

@@ -77,7 +77,7 @@ def get_usage_history(storage_id):
         
         # Calculate usage statistics
         total_usage = db.session.query(
-            func.sum(UsageRecord.使用量_g)
+            func.sum(UsageRecord.使用量)
         ).filter_by(storage_id=storage_id).scalar() or 0
         
         usage_count = UsageRecord.query.filter_by(storage_id=storage_id).count()
@@ -131,7 +131,7 @@ def get_inventory_turnover():
         for item in storage_items:
             # Calculate usage in period
             period_usage = db.session.query(
-                func.sum(UsageRecord.使用量_g)
+                func.sum(UsageRecord.使用量)
             ).filter(
                 and_(
                     UsageRecord.storage_id == item.id,
@@ -196,7 +196,7 @@ def get_inventory_trends():
         usage_trends = db.session.query(
             date_format.label(date_label),
             func.count(UsageRecord.id).label('usage_count'),
-            func.sum(UsageRecord.使用量_g).label('total_usage_g'),
+            func.sum(UsageRecord.使用量).label('total_usage'),
             func.count(func.distinct(UsageRecord.使用人)).label('unique_users')
         ).filter(
             UsageRecord.使用日期 >= start_date
@@ -206,7 +206,7 @@ def get_inventory_trends():
         type_trends = db.session.query(
             UsageRecord.类型,
             func.count(UsageRecord.id).label('usage_count'),
-            func.sum(UsageRecord.使用量_g).label('total_usage_g')
+            func.sum(UsageRecord.使用量).label('total_usage')
         ).filter(
             UsageRecord.使用日期 >= start_date
         ).group_by(UsageRecord.类型).all()
@@ -215,7 +215,7 @@ def get_inventory_trends():
         top_users = db.session.query(
             UsageRecord.使用人,
             func.count(UsageRecord.id).label('usage_count'),
-            func.sum(UsageRecord.使用量_g).label('total_usage_g')
+            func.sum(UsageRecord.使用量).label('total_usage')
         ).filter(
             UsageRecord.使用日期 >= start_date
         ).group_by(UsageRecord.使用人).order_by(

@@ -198,9 +198,9 @@ def create_record():
                 'storage_item': storage_item.to_dict(),
                 'unit_info': {
                     'storage_unit': storage_item.单位,
-                    'usage_amount': usage_record.使用量_g,
+                    'usage_amount': usage_record.使用量,
                     'remaining_quantity': storage_item.当前库存量,
-                    'calculation': f"{storage_item.当前库存量 + usage_record.使用量_g} - {usage_record.使用量_g} = {storage_item.当前库存量}"
+                    'calculation': f"{storage_item.当前库存量 + usage_record.使用量} - {usage_record.使用量} = {storage_item.当前库存量}"
                 },
                 'metadata': {
                     'operation': 'record_creation_proxy',
@@ -308,8 +308,8 @@ def get_record(record_id):
         if storage_item:
             response_data['computed_info'] = {
                 'inventory_impact': {
-                    'usage_amount': record.使用量_g,
-                    'remaining_after_usage': record.余量_g,
+                    'usage_amount': record.使用量,
+                    'remaining_after_usage': record.余量,
                     'current_storage_quantity': storage_item.当前库存量,
                     'unit': storage_item.单位
                 },
@@ -361,7 +361,7 @@ def update_record(record_id):
         # Use storage service to handle updates
         usage_record, storage_item = StorageService.update_usage_record(record_id, data)
         
-        logger.info(f"Successfully updated record {record_id}, new usage: {usage_record.使用量_g}g, storage quantity: {storage_item.当前库存量}g")
+        logger.info(f"Successfully updated record {record_id}, new usage: {usage_record.使用量}{storage_item.单位}, storage quantity: {storage_item.当前库存量}{storage_item.单位}")
         
         return jsonify({
             'message': 'Record updated successfully',
@@ -401,7 +401,7 @@ def delete_record(record_id):
             logger.error(f"Record {record_id} has null storage_id")
             return jsonify({'error': 'Record is not linked to a storage item'}), 400
         
-        logger.info(f"Deleting record {record_id} for storage item {record.storage_id}, restoring {record.使用量_g}g")
+        logger.info(f"Deleting record {record_id} for storage item {record.storage_id}, restoring {record.使用量}{storage_item.单位 if (storage_item:=Storage.query.get(record.storage_id)) else ''}")
         
         # Use storage service to restore inventory and delete record atomically
         storage_item = StorageService.delete_usage_record(record_id)

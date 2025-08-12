@@ -200,44 +200,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Recent Storage Usage
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Storage Usage</h2>
-            <Link 
-              to="/storage" 
-              className="text-green-600 hover:text-green-700 font-medium"
-            >
-              View Storage
-            </Link>
-          </div>
-          
-          {recentUsageData?.usage_records?.length > 0 ? (
-            <div className="space-y-3">
-              {recentUsageData.usage_records.slice(0, 3).map((record) => (
-                <div key={record.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-900 break-words">{record['产品名']}</h4>
-                    <p className="text-sm text-gray-600">
-                      Used by {record['使用人']} • {record['使用量_g'].toFixed(3)}g
-                    </p>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {new Date(record['使用日期']).toLocaleDateString('zh-CN')}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>No storage usage found</p>
-              <Link to="/storage" className="text-green-600 hover:text-green-700 mt-2 inline-block">
-                Start using storage
-              </Link>
-            </div>
-          )}
-        </div> */}
-      {/* </div> */}
+        
 
       {/* Low Stock Items */}
       {lowStockItems.length > 0 && (

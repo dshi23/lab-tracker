@@ -29,13 +29,15 @@ const UsageForm = () => {
     defaultValues: {
       '使用人': '',
       '使用日期': new Date().toISOString().split('T')[0],
-      '使用量_g': '',
+      '使用量': '',
       '备注': ''
     }
   });
 
-  const watchedUsage = watch('使用量_g', 0);
-  const availableStock = storageItem?.item?.['当前库存量'] || 0;
+  const watchedUsage = watch('使用量', 0);
+  // Normalize available stock to 3 decimals to avoid browser clamping (e.g., 2 -> 1.999)
+  const availableStockBase = Number(storageItem?.item?.['当前库存量'] || 0);
+  const availableStock = Math.round((availableStockBase + Number.EPSILON) * 1000) / 1000;
   const remainingStock = availableStock - (parseFloat(watchedUsage) || 0);
 
   // Record usage mutation
@@ -53,11 +55,11 @@ const UsageForm = () => {
         if (response?.record) {
           setCreatedRecord(response.record)
           setShowSuccessDialog(true)
-        } else if (response?.usage_record && response.usage_record['使用量_g']) {
+        } else if (response?.usage_record && response.usage_record['使用量']) {
           // Fallback navigation if no record data
           navigate(`/storage/${id}`, {
             state: { 
-              message: `成功记录使用 ${response.usage_record['使用量_g']}g` 
+              message: `成功记录使用 ${response.usage_record['使用量']}${response.usage_record['单位'] || ''}` 
             }
           });
         } else {
@@ -74,7 +76,7 @@ const UsageForm = () => {
     setError(null);
     
     // Validate usage amount
-    const usageAmount = parseFloat(data['使用量_g']);
+    const usageAmount = parseFloat(data['使用量']);
     if (usageAmount <= 0) {
       setError('使用量必须大于0');
       return;
@@ -144,7 +146,7 @@ const UsageForm = () => {
       <div className="max-w-2xl mx-auto text-center py-8">
         <div className="text-gray-400 mb-4">
           <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414-2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 009.586 13H7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414-2.414a1 1 0 01-.707.293H7.828a1 1 0 01-.707-.293L4.707 13.293A1 1 0 004 13H3" />
           </svg>
         </div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">库存项目不存在</h2>
@@ -236,7 +238,7 @@ const UsageForm = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 使用人 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text sm font-medium text-gray-700 mb-2">
                 使用人 *
               </label>
               <input
@@ -272,10 +274,11 @@ const UsageForm = () => {
             </label>
             <input
               type="number"
+              inputMode="decimal"
               step="0.001"
               min="0.001"
               max={availableStock}
-              {...register('使用量_g', { 
+              {...register('使用量', { 
                 required: '请输入使用量',
                 min: { value: 0.001, message: '使用量必须大于0' },
                 max: { value: availableStock, message: '使用量不能超过库存量' }
@@ -283,12 +286,12 @@ const UsageForm = () => {
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="输入使用量"
             />
-            {errors['使用量_g'] && (
-              <p className="text-red-500 text-sm mt-1">{errors['使用量_g'].message}</p>
+            {errors['使用量'] && (
+              <p className="text-red-500 text-sm mt-1">{errors['使用量'].message}</p>
             )}
             
             {/* Real-time remaining calculation */}
-            {watchedUsage && (
+            {watchedUsage !== '' && watchedUsage !== null && (
               <div className="mt-2 p-3 bg-blue-50 rounded text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-blue-700">

@@ -51,8 +51,9 @@ class UsageRecord(db.Model):
     CAS号 = db.Column(db.String(50), nullable=True)  # CAS Number
     使用人 = db.Column(db.String(100), nullable=False, index=True)  # User
     使用日期 = db.Column(db.Date, nullable=False, index=True)  # Usage Date
-    使用量_g = db.Column(db.Float, nullable=False)  # Amount Used (in grams)
-    余量_g = db.Column(db.Float, nullable=False)  # Remaining Amount (in grams)
+    使用量 = db.Column(db.Float, nullable=False)  # Amount Used (in storage/unit)
+    余量 = db.Column(db.Float, nullable=False)  # Remaining Amount (in storage/unit)
+    单位 = db.Column(db.String(10), nullable=True)  # Unit for usage/remaining, matches storage unit
     备注 = db.Column(db.Text, nullable=True)  # Notes
     创建时间 = db.Column(db.DateTime, default=datetime.utcnow)
     更新时间 = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -69,8 +70,9 @@ class UsageRecord(db.Model):
             'CAS号': self.CAS号,
             '使用人': self.使用人,
             '使用日期': self.使用日期.isoformat() if self.使用日期 else None,
-            '使用量_g': self.使用量_g,
-            '余量_g': self.余量_g,
+            '使用量': self.使用量,
+            '余量': self.余量,
+            '单位': self.单位,
             '备注': self.备注,
             '创建时间': self.创建时间.isoformat() if self.创建时间 else None,
             '更新时间': self.更新时间.isoformat() if self.更新时间 else None,

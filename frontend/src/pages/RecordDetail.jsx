@@ -14,7 +14,7 @@ const RecordDetail = () => {
 
   const { getRecord, deleteRecord } = useRecordsApi();
 
-  const { data: record, isLoading, error: fetchError } = useQuery(
+  const { data, isLoading, error: fetchError } = useQuery(
     ['record', id],
     () => getRecord(id),
     {
@@ -65,7 +65,12 @@ const RecordDetail = () => {
     )
   }
 
-  if (!record) {
+  const recordData = data?.record
+  const storageItem = data?.storage_item
+  const computedUnit = data?.computed_info?.inventory_impact?.unit
+  const displayUnit = computedUnit || storageItem?.['单位'] || 'g'
+
+  if (!recordData) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">Record not found</p>
@@ -96,63 +101,72 @@ const RecordDetail = () => {
       <div className="card">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">基本信息</h2>
             <dl className="space-y-3">
               <div>
-                <dt className="text-sm font-medium text-gray-500">Antibody Name</dt>
-                <dd className="text-gray-900">{record.antibody_name}</dd>
+                <dt className="text-sm font-medium text-gray-500">产品名</dt>
+                <dd className="text-gray-900">{recordData['产品名']}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Personnel</dt>
-                <dd className="text-gray-900">{record.personnel}</dd>
+                <dt className="text-sm font-medium text-gray-500">使用人</dt>
+                <dd className="text-gray-900">{recordData['使用人']}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Date</dt>
-                <dd className="text-gray-900">{formatDate(record.config_date)}</dd>
+                <dt className="text-sm font-medium text-gray-500">使用日期</dt>
+                <dd className="text-gray-900">{formatDate(recordData['使用日期'])}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Dilution Ratio</dt>
-                <dd className="text-gray-900">{record.dilution_ratio}</dd>
+                <dt className="text-sm font-medium text-gray-500">类型</dt>
+                <dd className="text-gray-900">{recordData['类型']}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Volume Used</dt>
-                <dd className="text-gray-900">{record.volume_used}</dd>
+                <dt className="text-sm font-medium text-gray-500">使用量</dt>
+                <dd className="text-gray-900">{recordData['使用量']}{displayUnit}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Dilution Type</dt>
-                <dd className="text-gray-900">{record.dilution_type}</dd>
+                <dt className="text-sm font-medium text-gray-500">余量</dt>
+                <dd className="text-gray-900">{recordData['余量']}{displayUnit}</dd>
               </div>
             </dl>
           </div>
 
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Additional Information</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">更多信息</h2>
             <dl className="space-y-3">
-              {record.experiment_name && (
+              {recordData['存放地'] && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Experiment Name</dt>
-                  <dd className="text-gray-900">{record.experiment_name}</dd>
+                  <dt className="text-sm font-medium text-gray-500">存放地</dt>
+                  <dd className="text-gray-900">{recordData['存放地']}</dd>
                 </div>
               )}
-              {record.batch_number && (
+              {recordData['CAS号'] && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Batch Number</dt>
-                  <dd className="text-gray-900">{record.batch_number}</dd>
+                  <dt className="text-sm font-medium text-gray-500">CAS号</dt>
+                  <dd className="text-gray-900 font-mono">{recordData['CAS号']}</dd>
                 </div>
               )}
-              {record.notes && (
+              {recordData['备注'] && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Notes</dt>
-                  <dd className="text-gray-900">{record.notes}</dd>
+                  <dt className="text-sm font-medium text-gray-500">备注</dt>
+                  <dd className="text-gray-900">{recordData['备注']}</dd>
+                </div>
+              )}
+              {storageItem && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">关联库存</dt>
+                  <dd className="text-gray-900">
+                    {storageItem['产品名']} • {storageItem['当前库存量']}{storageItem['单位']}（当前）
+                    <div className="text-xs text-gray-500 mt-1">单位显示使用关联库存单位：{displayUnit}</div>
+                  </dd>
                 </div>
               )}
               <div>
-                <dt className="text-sm font-medium text-gray-500">Created</dt>
-                <dd className="text-gray-900">{formatDate(record.created_at)}</dd>
+                <dt className="text-sm font-medium text-gray-500">创建时间</dt>
+                <dd className="text-gray-900">{formatDate(recordData['创建时间'])}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
-                <dd className="text-gray-900">{formatDate(record.updated_at)}</dd>
+                <dt className="text-sm font-medium text-gray-500">更新时间</dt>
+                <dd className="text-gray-900">{formatDate(recordData['更新时间'])}</dd>
               </div>
             </dl>
           </div>

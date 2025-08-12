@@ -231,7 +231,7 @@ def delete_storage_item(storage_id):
             date_range = {'earliest': None, 'latest': None}
             
             for record in usage_records:
-                total_usage += record.使用量_g
+                total_usage += record.使用量
                 users.add(record.使用人)
                 
                 if date_range['earliest'] is None or record.使用日期 < date_range['earliest']:
@@ -243,8 +243,8 @@ def delete_storage_item(storage_id):
                     'id': record.id,
                     'user': record.使用人,
                     'date': record.使用日期.isoformat(),
-                    'amount': record.使用量_g,
-                    'remaining': record.余量_g
+                    'amount': record.使用量,
+                    'remaining': record.余量
                 })
             
             # Build detailed response about associated records

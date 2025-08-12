@@ -125,11 +125,11 @@ class StorageService:
         storage_item = Storage.query.get_or_404(storage_id)
         
         # Validate sufficient stock
-        if storage_item.当前库存量 < usage_data['使用量_g']:
+        if storage_item.当前库存量 < usage_data['使用量']:
             raise ValueError("Insufficient stock available")
         
         # Calculate remaining amount
-        new_remaining = storage_item.当前库存量 - usage_data['使用量_g']
+        new_remaining = storage_item.当前库存量 - usage_data['使用量']
         
         # Create usage record
         usage_record = UsageRecord(
@@ -141,8 +141,9 @@ class StorageService:
             CAS号=storage_item.CAS号,
             使用人=usage_data['使用人'],
             使用日期=usage_data['使用日期'],
-            使用量_g=usage_data['使用量_g'],
-            余量_g=new_remaining,
+            使用量=usage_data['使用量'],
+            余量=new_remaining,
+            单位=storage_item.单位,
             备注=usage_data.get('备注')
         )
         
@@ -194,8 +195,9 @@ class StorageService:
             CAS号=storage_item.CAS号,
             使用人=usage_data['使用人'],
             使用日期=usage_data['使用日期'],
-            使用量_g=usage_amount,  # Store in storage's unit (field name is legacy)
-            余量_g=new_remaining,   # Store in storage's unit (field name is legacy)
+            使用量=usage_amount,
+            余量=new_remaining,
+            单位=storage_item.单位,
             备注=usage_data.get('备注')
         )
         
@@ -216,8 +218,8 @@ class StorageService:
         storage_item = Storage.query.get_or_404(usage_record.storage_id)
         
         # Calculate difference in usage amount
-        old_usage = usage_record.使用量_g
-        new_usage = usage_data.get('使用量_g', old_usage)
+        old_usage = usage_record.使用量
+        new_usage = usage_data.get('使用量', old_usage)
         usage_difference = new_usage - old_usage
         
         # Check if we have enough stock for the change
@@ -227,12 +229,13 @@ class StorageService:
         # Update usage record
         usage_record.使用人 = usage_data.get('使用人', usage_record.使用人)
         usage_record.使用日期 = usage_data.get('使用日期', usage_record.使用日期)
-        usage_record.使用量_g = new_usage
+        usage_record.使用量 = new_usage
+        usage_record.单位 = usage_data.get('单位', usage_record.单位)
         usage_record.备注 = usage_data.get('备注', usage_record.备注)
         
         # Update storage inventory
         storage_item.当前库存量 -= usage_difference
-        usage_record.余量_g = storage_item.当前库存量
+        usage_record.余量 = storage_item.当前库存量
         storage_item.更新时间 = datetime.utcnow()
         usage_record.更新时间 = datetime.utcnow()
         
@@ -265,18 +268,18 @@ class StorageService:
             
             # Log current state for debugging
             logger.info(f"Record details - Product: {usage_record.产品名}, "
-                       f"Usage amount: {usage_record.使用量_g}g, "
+                       f"Usage amount: {usage_record.使用量}{storage_item.单位}, "
                        f"Current inventory: {storage_item.当前库存量}g")
             
             # Validate usage amount is reasonable
-            if usage_record.使用量_g <= 0:
-                raise ValueError(f"Invalid usage amount {usage_record.使用量_g}g in record {usage_id}")
+            if usage_record.使用量 <= 0:
+                raise ValueError(f"Invalid usage amount {usage_record.使用量}{storage_item.单位} in record {usage_id}")
             
             # Calculate new inventory level
             original_inventory = storage_item.当前库存量
-            restored_inventory = original_inventory + usage_record.使用量_g
+            restored_inventory = original_inventory + usage_record.使用量
             
-            logger.info(f"Restoring inventory: {original_inventory}g + {usage_record.使用量_g}g = {restored_inventory}g")
+            logger.info(f"Restoring inventory: {original_inventory}{storage_item.单位} + {usage_record.使用量}{storage_item.单位} = {restored_inventory}{storage_item.单位}")
             
             # Restore inventory
             storage_item.当前库存量 = restored_inventory

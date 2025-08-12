@@ -260,10 +260,10 @@ const StorageDetail = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-sm text-red-600">
-                      -{record['使用量_g'].toFixed(3)}g
+                      -{Number(record['使用量']).toFixed(3)}{record['单位'] || ''}
                     </div>
                     <div className="text-xs text-gray-500">
-                      余 {record['余量_g'].toFixed(3)}g
+                      余 {Number(record['余量']).toFixed(3)}{record['单位'] || ''}
                     </div>
                   </div>
                 </div>
@@ -304,11 +304,11 @@ const StorageDetail = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="bg-gray-50 p-3 rounded">
                 <div className="text-gray-600">总使用量</div>
-                <div className="font-semibold">{usageHistory.statistics.total_usage_g.toFixed(3)}g</div>
+                <div className="font-semibold">{(usageHistory.statistics.total_usage ?? usageHistory.statistics.total_usage_g).toFixed(3)}{item['单位']}</div>
               </div>
               <div className="bg-gray-50 p-3 rounded">
                 <div className="text-gray-600">平均使用量</div>
-                <div className="font-semibold">{usageHistory.statistics.average_usage_g.toFixed(3)}g</div>
+                <div className="font-semibold">{(usageHistory.statistics.average_usage ?? usageHistory.statistics.average_usage_g).toFixed(3)}{item['单位']}</div>
               </div>
               {usageHistory.statistics.most_frequent_user && (
                 <div className="bg-gray-50 p-3 rounded">

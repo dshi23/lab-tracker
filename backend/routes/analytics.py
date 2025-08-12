@@ -148,7 +148,7 @@ def get_product_stats():
             func.count(func.distinct(UsageRecord.使用人)).label('unique_users'),
             func.min(UsageRecord.使用日期).label('first_usage'),
             func.max(UsageRecord.使用日期).label('last_usage'),
-            func.avg(UsageRecord.使用量_g).label('avg_usage')
+            func.avg(UsageRecord.使用量).label('avg_usage')
         ).filter(
             UsageRecord.storage_id.isnot(None),
             UsageRecord.使用日期 >= start_date

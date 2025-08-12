@@ -18,6 +18,17 @@ const RecordCard = ({ record, compact = false }) => {
   }
 
   const { deleteRecord } = useRecordsApi();
+  const formatUsage = (rec) => {
+    const amount = rec['使用量']
+    const unit = rec['单位'] || rec.unit
+    if (typeof amount === 'number') {
+      const num = Number.isFinite(amount) ? amount : null
+      if (num == null) return rec.volume_used || '使用量未知'
+      return unit ? `${num}${unit}` : `${num}`
+    }
+    return rec.volume_used || '使用量未知'
+  }
+
   // Delete record mutation
   const deleteRecordMutation = useMutation(
     () => deleteRecord(record.id),
@@ -53,7 +64,7 @@ const RecordCard = ({ record, compact = false }) => {
               {record.产品名 || record.drug_name}
             </h3>
             <p className="text-sm text-gray-500">
-              {record.使用人 || record.personnel} • {record.使用量_g ? `${record.使用量_g}g` : '使用量未知'}
+              {record.使用人 || record.personnel} • {formatUsage(record)}
             </p>
           </div>
           <div className="text-right ml-4">
@@ -97,7 +108,7 @@ const RecordCard = ({ record, compact = false }) => {
             <div>
               <span className="text-gray-500">使用量:</span>
               <span className="ml-2 text-gray-900">
-                {record.使用量_g ? `${record.使用量_g.toFixed(3)}g` : (record.volume_used || '未知')}
+                {formatUsage(record)}
               </span>
             </div>
             {record.存放地 && (
