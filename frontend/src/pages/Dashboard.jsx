@@ -65,7 +65,7 @@ const Dashboard = () => {
 
   // Calculate storage statistics
   const storageItems = storageData?.items || []
-  const totalStorageItems = storageItems.length
+  const totalStorageItems = storageData?.total || storageItems.length
   const lowStockItems = storageItems.filter(item => {
     // Consider items with less than 10% of original quantity as low stock
     const originalMatch = item['数量及数量单位'].match(/([0-9.]+)/)
