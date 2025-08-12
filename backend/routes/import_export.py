@@ -139,66 +139,69 @@ def import_excel():
 
 @import_export_bp.route('/api/export', methods=['GET'])
 def export_excel():
-    """Export data to Excel file"""
+    """Export lab records (usage records) to Excel file.
+
+    NOTE: This exports UsageRecord with Chinese field names consistent with the current model.
+    """
     try:
-        # Get query parameters for filtering
+        # Get query parameters for filtering (frontend may pass English keys)
         search = request.args.get('search', '')
         personnel = request.args.get('personnel', '')
-        antibody = request.args.get('antibody', '')
+        product = request.args.get('product', '')
         start_date = request.args.get('start_date', '')
         end_date = request.args.get('end_date', '')
-        
-        # Build query
+
+        # Build query on current model fields
         query = UsageRecord.query
-        
+
         if search:
             from sqlalchemy import or_
             search_filter = or_(
-                UsageRecord.antibody_name.ilike(f'%{search}%'),
-                UsageRecord.personnel.ilike(f'%{search}%'),
-                UsageRecord.dilution_type.ilike(f'%{search}%'),
-                UsageRecord.notes.ilike(f'%{search}%'),
-                UsageRecord.experiment_name.ilike(f'%{search}%')
+                UsageRecord.产品名.ilike(f'%{search}%'),
+                UsageRecord.使用人.ilike(f'%{search}%'),
+                UsageRecord.类型.ilike(f'%{search}%'),
+                UsageRecord.存放地.ilike(f'%{search}%'),
+                UsageRecord.备注.ilike(f'%{search}%')
             )
             query = query.filter(search_filter)
-        
+
         if personnel:
-            query = query.filter(UsageRecord.personnel.ilike(f'%{personnel}%'))
-        
-        if antibody:
-            query = query.filter(UsageRecord.antibody_name.ilike(f'%{antibody}%'))
-        
+            query = query.filter(UsageRecord.使用人.ilike(f'%{personnel}%'))
+
+        if product:
+            query = query.filter(UsageRecord.产品名.ilike(f'%{product}%'))
+
         if start_date:
             from utils.date_parser import DateParser
             parsed_start = DateParser.parse_date(start_date)
             if parsed_start:
-                query = query.filter(UsageRecord.config_date >= parsed_start)
-        
+                query = query.filter(UsageRecord.使用日期 >= parsed_start)
+
         if end_date:
             from utils.date_parser import DateParser
             parsed_end = DateParser.parse_date(end_date)
             if parsed_end:
-                query = query.filter(UsageRecord.config_date <= parsed_end)
-        
-        # Get all records
-        records = query.order_by(UsageRecord.config_date.desc()).all()
-        
+                query = query.filter(UsageRecord.使用日期 <= parsed_end)
+
+        # Get all records ordered by date desc
+        records = query.order_by(UsageRecord.使用日期.desc()).all()
+
         if not records:
             return jsonify({'error': 'No records found to export'}), 404
-        
+
         # Create temporary file
         temp_dir = tempfile.mkdtemp()
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f'lab_records_{timestamp}.xlsx'
         file_path = os.path.join(temp_dir, filename)
-        
+
         try:
-            # Export to Excel
+            # Export to Excel using current field mapping
             success = ExcelProcessor.export_excel(records, file_path)
-            
+
             if not success:
                 return jsonify({'error': 'Failed to create Excel file'}), 500
-            
+
             # Send file
             return send_file(
                 file_path,
@@ -206,11 +209,11 @@ def export_excel():
                 download_name=filename,
                 mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
-            
+
         except Exception as e:
             logger.error(f"Error exporting file: {str(e)}")
             return jsonify({'error': 'Internal server error'}), 500
-        
+
     except Exception as e:
         logger.error(f"Error in export: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500

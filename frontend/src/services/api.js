@@ -57,14 +57,16 @@ export const importExportAPI = {
   
   // Export Excel file
   exportExcel: (params = {}) => 
-    api.get('/api/export', { 
+    api.request({
+      url: '/api/export',
+      method: 'GET',
       params,
-      responseType: 'blob'
+      responseType: 'blob',
     }),
   
   // Download template
   downloadTemplate: () => 
-    api.get('/api/template', { responseType: 'blob' }),
+    api.request({ url: '/api/template', method: 'GET', responseType: 'blob' }),
   
   // Sync offline data
   syncOfflineData: (data) => api.post('/api/sync', data),

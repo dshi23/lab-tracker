@@ -99,16 +99,18 @@ class ExcelProcessor:
         try:
             data = []
             for record in records:
+                # UsageRecord now uses Chinese field names and storage integration
                 data.append({
-                    '类型': getattr(record, 'type', ''),
-                    '产品名': getattr(record, 'product_name', ''),
-                    'CAS号': getattr(record, 'cas_number', ''),
-                    '存放地': getattr(record, 'location', ''),
-                    '使用日期': DateParser.format_date_for_display(getattr(record, 'usage_date', None)),
-                    '使用人': getattr(record, 'personnel', ''),
-                    '使用量_g': getattr(record, 'usage_amount_g', 0),
-                    '余量_g': getattr(record, 'remaining_g', 0),
-                    '备注': getattr(record, 'notes', '')
+                    '类型': getattr(record, '类型', ''),
+                    '产品名': getattr(record, '产品名', ''),
+                    'CAS号': getattr(record, 'CAS号', ''),
+                    '存放地': getattr(record, '存放地', ''),
+                    '使用日期': DateParser.format_date_for_display(getattr(record, '使用日期', None)),
+                    '使用人': getattr(record, '使用人', ''),
+                    '使用量': getattr(record, '使用量', None),
+                    '余量': getattr(record, '余量', None),
+                    '单位': getattr(record, '单位', ''),
+                    '备注': getattr(record, '备注', ''),
                 })
             df = pd.DataFrame(data)
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -122,7 +124,7 @@ class ExcelProcessor:
                         try:
                             if len(str(cell.value)) > max_length:
                                 max_length = len(str(cell.value))
-                        except:
+                        except Exception:
                             pass
                     adjusted_width = min(max_length + 2, 50)
                     worksheet.column_dimensions[column_letter].width = adjusted_width

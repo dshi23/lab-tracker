@@ -31,35 +31,43 @@ export const useStorageApi = () => {
   };
 
   const exportStorageExcel = async (filters = {}) => {
-    const response = await request(() => ApiService.get('/api/storage/export', {
-      params: filters,
-      responseType: 'blob'
-    }));
+    const response = await request(() =>
+      ApiService.request({
+        url: '/api/storage/export',
+        method: 'GET',
+        params: filters,
+        responseType: 'blob',
+      })
+    );
 
-      const url = window.URL.createObjectURL(new Blob([response]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `storage_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      return true;
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `storage_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    return true;
   };
 
   const downloadStorageTemplate = async () => {
-    const response = await request(() => ApiService.get('/api/storage/template', {
-      responseType: 'blob'
-    }));
-      const url = window.URL.createObjectURL(new Blob([response]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'storage_template.xlsx');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      return true;
+    const response = await request(() =>
+      ApiService.request({
+        url: '/api/storage/template',
+        method: 'GET',
+        responseType: 'blob',
+      })
+    );
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'storage_template.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    return true;
   };
 
   const getInventoryDashboard = () =>
