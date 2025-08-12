@@ -523,6 +523,64 @@ class StorageService:
         
         target_factor = conversion_factors.get(to_unit, 1.0)
         return amount_in_grams / target_factor
+
+    @staticmethod
+    def find_existing_storage_item(data: Dict[str, Any]) -> Optional[Storage]:
+        """Find an existing storage item using best-available keys.
+
+        Priority of match:
+        1) CAS号 + 存放地 (+ 类型 if provided)
+        2) 产品名 + 存放地 (+ 类型 if provided)
+        3) 产品名 only
+        """
+        query = None
+
+        cas_number = data.get('CAS号') or data.get('cas_number')
+        name = data.get('产品名') or data.get('name')
+        location = data.get('存放地') or data.get('location')
+        type_name = data.get('类型') or data.get('type')
+
+        # 1) Try CAS + location (+ type)
+        if cas_number and location:
+            q = Storage.query.filter(Storage.CAS号 == cas_number, Storage.存放地 == location)
+            if type_name:
+                q = q.filter(Storage.类型 == type_name)
+            query = q.first()
+            if query:
+                return query
+
+        # 2) Try name + location (+ type)
+        if name and location:
+            q = Storage.query.filter(Storage.产品名 == name, Storage.存放地 == location)
+            if type_name:
+                q = q.filter(Storage.类型 == type_name)
+            query = q.first()
+            if query:
+                return query
+
+        # 3) Fallback to name only
+        if name:
+            return Storage.query.filter(Storage.产品名 == name).first()
+
+        return None
+
+    @staticmethod
+    def add_quantity_to_storage_item(storage_item: Storage, amount: float, unit: str) -> Storage:
+        """Add quantity to an existing storage item, converting units if needed."""
+        # Ensure amount is positive
+        if amount <= 0:
+            raise ValueError('Merge amount must be positive')
+
+        # Convert incoming amount to the storage item's unit if necessary
+        amount_in_storage_unit = (
+            amount if unit == storage_item.单位
+            else StorageService.convert_between_units(amount, unit, storage_item.单位)
+        )
+
+        storage_item.当前库存量 = float(storage_item.当前库存量) + float(amount_in_storage_unit)
+        storage_item.更新时间 = datetime.utcnow()
+        db.session.commit()
+        return storage_item
     
     @staticmethod
     def create_storage_item_with_units(data: Dict[str, Any]) -> Storage:

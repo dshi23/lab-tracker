@@ -24,10 +24,6 @@ const StorageList = () => {
 
   const { getStorageItems, deleteStorageItem } = useStorageApi();
 
-  useEffect(() => {
-    loadStorage();
-  }, [filters]);
-
   const loadStorage = async () => {
     setLoading(true);
     try {
@@ -48,6 +44,27 @@ const StorageList = () => {
     }
   };
 
+  // Load when filters change
+  useEffect(() => {
+    loadStorage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
+
+  // Force refresh when window gains focus or becomes visible
+  useEffect(() => {
+    const onFocusOrVisible = () => {
+      loadStorage();
+    };
+    window.addEventListener('focus', onFocusOrVisible);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') onFocusOrVisible();
+    });
+    return () => {
+      window.removeEventListener('focus', onFocusOrVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleFilterChange = (newFilters) => {
     setFilters(prev => ({ ...prev, ...newFilters, page: 1 }));
   };
@@ -60,7 +77,7 @@ const StorageList = () => {
     if (window.confirm('确定要删除这个存储项目吗？此操作不可撤销。')) {
       try {
         await deleteStorageItem(id);
-        setStorage(storage.filter(item => item.id !== id));
+        await loadStorage();
       } catch (error) {
         alert('删除失败: ' + error.message);
       }
@@ -84,8 +101,6 @@ const StorageList = () => {
       sort_order: newOrder
     }));
   };
-
-
 
   return (
     <div className="space-y-4">

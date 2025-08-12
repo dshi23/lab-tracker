@@ -24,7 +24,10 @@ const Records = () => {
     () => getRecords(filters),
     {
       keepPreviousData: true,
-      staleTime: 2 * 60 * 1000, // 2 minutes
+      staleTime: 0,
+      refetchOnMount: 'always',
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
     }
   )
 

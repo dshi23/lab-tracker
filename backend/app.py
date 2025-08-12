@@ -66,56 +66,43 @@ def create_app(config_name=None):
 
 def _init_extensions(app):
     """Initialize Flask extensions"""
-    # Database
+    CORS(app)
     db.init_app(app)
-    
-    # Database migrations
-    migrate = Migrate(app, db, compare_type=True)
-    
-    app.logger.info("Extensions initialized")
+    Migrate(app, db)
 
 def _configure_logging(app):
-    """Configure application logging"""
-    if not app.debug and not app.testing:
-        # Production logging
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]',
-            handlers=[
-                logging.FileHandler('app.log'),
-                logging.StreamHandler()
-            ]
-        )
-    else:
-        # Development logging
-        logging.basicConfig(
-            level=logging.DEBUG if app.debug else logging.INFO,
-            format='%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-        )
-    
-    app.logger.info("Logging configured")
+    """Configure logging for the application"""
+    log_level = logging.DEBUG if app.config.get('DEBUG', True) else logging.INFO
+    logging.basicConfig(level=log_level)
+    app.logger.setLevel(log_level)
+
+    # Simple request logging
+    @app.before_request
+    def log_request_info():
+      app.logger.debug(f"Request: {request.method} {request.path}")
+
 
 def _configure_cors(app):
-    """Configure Cross-Origin Resource Sharing"""
-    CORS(app, 
-         origins=app.config['CORS_ORIGINS'],
-         supports_credentials=True,
-         allow_headers=['Content-Type', 'Authorization'],
-         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+    """Configure CORS"""
+    CORS(app, resources={r"/api/*": {"origins": app.config.get('CORS_ORIGINS', ['*'])}}, supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
     
     app.logger.info("CORS configured")
 
 def _configure_rate_limiting(app):
     """Configure rate limiting"""
+    # Parse semicolon-separated default limits from config
+    default_limits_str = app.config.get('RATELIMIT_DEFAULT', '2000 per day;500 per hour')
+    default_limits = [s.strip() for s in str(default_limits_str).split(';') if s.strip()]
+
     limiter = Limiter(
         app=app,
         key_func=get_remote_address,
-        default_limits=["200 per day", "50 per hour"],
+        default_limits=default_limits,
         storage_uri=app.config.get('RATELIMIT_STORAGE_URL', 'memory://'),
         strategy='fixed-window'
     )
     
-    app.logger.info("Rate limiting configured")
+    app.logger.info(f"Rate limiting configured: {', '.join(default_limits)}")
 
 def _register_blueprints(app):
     """Register all application blueprints"""
@@ -181,49 +168,15 @@ def _register_shell_context(app):
     """Register shell context for Flask CLI"""
     @app.shell_context_processor
     def make_shell_context():
-        from models import Storage, UsageRecord
-        return {
-            'db': db,
-            'Storage': Storage,
-            'UsageRecord': UsageRecord
-        }
-    
-    app.logger.info("Shell context registered")
+        return {'db': db}
 
 def _register_request_hooks(app):
-    """Register request hooks for logging and monitoring"""
-    
-    @app.before_request
-    def log_request_info():
-        if app.debug:
-            app.logger.debug(f"Request: {request.method} {request.url}")
-    
+    """Register request hooks like before_request and after_request"""
     @app.after_request
-    def after_request(response):
-        # Add security headers
+    def add_security_headers(response):
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'DENY'
-        response.headers['X-XSS-Protection'] = '1; mode=block'
-        
-        if app.debug:
-            app.logger.debug(f"Response: {response.status_code}")
-        
         return response
-    
-    app.logger.info("Request hooks registered")
-    # 添加健康检查端点
-    _add_health_check(app)
-
-# Health check endpoint
-def _add_health_check(app):
-    """Add a health check endpoint"""
-    @app.route('/health')
-    def health_check():
-        return jsonify({
-            'status': 'healthy',
-            'timestamp': date.today().isoformat(),
-            'version': '1.0.0'
-        })
 
 if __name__ == '__main__':
     app = create_app()

@@ -32,8 +32,9 @@ class Config:
     ]
     
     # Rate limiting
-    RATELIMIT_DEFAULT = "200 per day;50 per hour"
-    RATELIMIT_STORAGE_URL = "memory://"
+    # Format: semicolon-separated limits understood by flask-limiter, e.g. "200 per day;500 per hour"
+    RATELIMIT_DEFAULT = os.environ.get('RATELIMIT_DEFAULT', '2000 per day;500 per hour')
+    RATELIMIT_STORAGE_URL = os.environ.get('RATELIMIT_STORAGE_URL', 'memory://')
     
     # Pagination
     RECORDS_PER_PAGE = 20
