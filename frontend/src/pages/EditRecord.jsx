@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useForm } from 'react-hook-form'
@@ -34,14 +34,26 @@ const EditRecord = () => {
   const storageItem = data?.storage_item
 
   // React Hook Form
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({
-    defaultValues: recordData ? {
-      '使用人': recordData['使用人'] || '',
-      '使用日期': formatDateForInput(recordData['使用日期']),
-      '使用量': recordData['使用量'] || 0,
-      '备注': recordData['备注'] || ''
-    } : undefined
+  const { register, handleSubmit, watch, formState: { errors }, reset } = useForm({
+    defaultValues: {
+      '使用人': '',
+      '使用日期': '',
+      '使用量': 0,
+      '备注': ''
+    }
   })
+
+  // Reset form when data loads
+  useEffect(() => {
+    if (recordData) {
+      reset({
+        '使用人': recordData['使用人'] || '',
+        '使用日期': formatDateForInput(recordData['使用日期']),
+        '使用量': recordData['使用量'] || 0,
+        '备注': recordData['备注'] || ''
+      })
+    }
+  }, [recordData, reset])
 
   // Computed values for UI and validation
   const unit = storageItem?.['单位'] || 'g'
