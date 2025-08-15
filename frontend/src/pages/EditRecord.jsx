@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useForm } from 'react-hook-form'
 import { useRecordsApi } from '../hooks/useRecordsApi'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
+import { safeParseFloat, safeSubtract, safeAdd } from '../utils/numberUtils'
 
 const EditRecord = () => {
   const { id } = useParams()
@@ -57,12 +58,12 @@ const EditRecord = () => {
 
   // Computed values for UI and validation
   const unit = storageItem?.['单位'] || 'g'
-  const currentStock = Number(storageItem?.['当前库存量'] || 0)
-  const existingUsage = Number(recordData?.['使用量'] || 0)
-  const maxUsage = currentStock + existingUsage
+  const currentStock = safeParseFloat(storageItem?.['当前库存量'] || 0)
+  const existingUsage = safeParseFloat(recordData?.['使用量'] || 0)
+  const maxUsage = safeAdd(currentStock, existingUsage)
   const watchedUsage = watch('使用量', existingUsage)
-  const numericWatched = parseFloat(watchedUsage) || 0
-  const remainingStock = maxUsage - numericWatched
+  const numericWatched = safeParseFloat(watchedUsage)
+  const remainingStock = safeSubtract(maxUsage, numericWatched)
 
   // Update record mutation
   const { mutateAsync, isLoading: isUpdating } = useMutation(
@@ -87,7 +88,7 @@ const EditRecord = () => {
 
   const onSubmit = async (form) => {
     setError(null)
-    const usageAmount = parseFloat(form['使用量'])
+    const usageAmount = safeParseFloat(form['使用量'])
     if (usageAmount <= 0) {
       setError('使用量必须大于0')
       return

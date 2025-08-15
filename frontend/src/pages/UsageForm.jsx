@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useStorageApi } from '../hooks/useStorageApi';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import SuccessDialog from '../components/ui/SuccessDialog';
+import { safeParseFloat, safeSubtract } from '../utils/numberUtils';
 
 const UsageForm = () => {
   const { id } = useParams();
@@ -35,10 +36,9 @@ const UsageForm = () => {
   });
 
   const watchedUsage = watch('使用量', 0);
-  // Normalize available stock to 3 decimals to avoid browser clamping (e.g., 2 -> 1.999)
-  const availableStockBase = Number(storageItem?.item?.['当前库存量'] || 0);
-  const availableStock = Math.round((availableStockBase + Number.EPSILON) * 1000) / 1000;
-  const remainingStock = availableStock - (parseFloat(watchedUsage) || 0);
+  // Use safe floating point operations to avoid precision errors
+  const availableStock = safeParseFloat(storageItem?.item?.['当前库存量'] || 0);
+  const remainingStock = safeSubtract(availableStock, safeParseFloat(watchedUsage));
 
   // Record usage mutation
   const recordUsageMutation = useMutation(
@@ -76,7 +76,7 @@ const UsageForm = () => {
     setError(null);
     
     // Validate usage amount
-    const usageAmount = parseFloat(data['使用量']);
+    const usageAmount = safeParseFloat(data['使用量']);
     if (usageAmount <= 0) {
       setError('使用量必须大于0');
       return;

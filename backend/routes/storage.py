@@ -585,11 +585,10 @@ def search_available_storage():
                 if total_qty == 0:
                     return 'unknown'
 
-                # Defensive check: if units somehow differ, fall back to conversion
-                current_qty = (
-                    item.当前库存量 if unit == item.单位
-                    else StorageService.convert_between_units(item.当前库存量, item.单位, unit)
-                )
+                # Only compare if units match
+                if unit != item.单位:
+                    return 'unknown'
+                current_qty = item.当前库存量
 
                 ratio = current_qty / total_qty
             except Exception:
@@ -680,17 +679,15 @@ def use_storage_item(storage_id):
             parsed_date = usage_date
         
         # Handle usage amount - use storage item's unit
-        try:
-            usage_amount_value = float(usage_amount)
-            if usage_amount_value <= 0:
-                return jsonify({'error': 'Usage amount must be greater than 0'}), 400
-            
-            # Use the storage item's unit for consistency
-            storage_unit = storage_item.单位
-            logger.info(f"Using storage unit: {storage_unit} for usage amount: {usage_amount_value}")
-            
-        except (ValueError, TypeError):
-            return jsonify({'error': 'Invalid usage amount format'}), 400
+        from utils.number_utils import NumberUtils
+        
+        usage_amount_value = NumberUtils.safe_float(usage_amount)
+        if not NumberUtils.is_positive(usage_amount_value):
+            return jsonify({'error': 'Usage amount must be greater than 0'}), 400
+        
+        # Use the storage item's unit for consistency
+        storage_unit = storage_item.单位
+        logger.info(f"Using storage unit: {storage_unit} for usage amount: {usage_amount_value}")
         
         # Prepare data for storage service (using storage's unit)
         usage_data = {

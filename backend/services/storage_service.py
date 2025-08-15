@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 from typing import Dict, Any, Tuple, Optional
 from models import db, Storage, UsageRecord
+from utils.number_utils import NumberUtils
 
 
 class StorageService:
@@ -68,9 +69,10 @@ class StorageService:
             storage_item.CAS号 = data['CAS号']
             updated_fields.append('CAS号')
         if '当前库存量' in data:
-            if float(data['当前库存量']) < 0:
+            current_qty = NumberUtils.safe_float(data['当前库存量'])
+            if not NumberUtils.is_non_negative(current_qty):
                 raise ValueError('Current quantity cannot be negative')
-            storage_item.当前库存量 = float(data['当前库存量'])
+            storage_item.当前库存量 = current_qty
             updated_fields.append('当前库存量')
         if '单位' in data:
             storage_item.单位 = data['单位']
@@ -95,12 +97,9 @@ class StorageService:
         
         # Validate quantities if provided
         if '当前库存量' in data:
-            try:
-                current_qty = float(data['当前库存量'])
-                if current_qty < 0:
-                    return 'Current quantity cannot be negative'
-            except (ValueError, TypeError):
-                return 'Current quantity must be a valid number'
+            current_qty = NumberUtils.safe_float(data['当前库存量'])
+            if not NumberUtils.is_non_negative(current_qty):
+                return 'Current quantity cannot be negative'
         
         # Validate quantity format if provided
         if '数量及数量单位' in data:
@@ -171,17 +170,14 @@ class StorageService:
         
         # Ensure unit consistency
         if usage_unit != storage_item.单位:
-            logger.warning(f"Unit mismatch: usage unit {usage_unit} != storage unit {storage_item.单位}")
-            # Convert usage amount to storage unit if different
-            usage_amount = StorageService.convert_between_units(usage_amount, usage_unit, storage_item.单位)
-            logger.info(f"Converted usage amount to {usage_amount} {storage_item.单位}")
+            raise ValueError(f"Unit mismatch: usage unit {usage_unit} != storage unit {storage_item.单位}. Units must match for usage recording.")
         
         # Validate sufficient stock (in storage's unit)
         if storage_item.当前库存量 < usage_amount:
             raise ValueError(f"Insufficient stock available. Current: {storage_item.当前库存量}{storage_item.单位}, Requested: {usage_amount}{storage_item.单位}")
         
         # Calculate remaining amount (in storage's unit)
-        new_remaining = storage_item.当前库存量 - usage_amount
+        new_remaining = NumberUtils.safe_subtract(storage_item.当前库存量, usage_amount)
         
         logger.info(f"Usage calculation: {storage_item.当前库存量} - {usage_amount} = {new_remaining} {storage_item.单位}")
         
@@ -214,27 +210,38 @@ class StorageService:
     @staticmethod
     def update_usage_record(usage_id: int, usage_data: Dict[str, Any]) -> Tuple[UsageRecord, Storage]:
         """Update usage record and adjust inventory"""
+        from utils.date_parser import DateParser
+        
         usage_record = UsageRecord.query.get_or_404(usage_id)
         storage_item = Storage.query.get_or_404(usage_record.storage_id)
         
         # Calculate difference in usage amount
         old_usage = usage_record.使用量
-        new_usage = usage_data.get('使用量', old_usage)
-        usage_difference = new_usage - old_usage
+        new_usage = NumberUtils.safe_float(usage_data.get('使用量', old_usage))
+        usage_difference = NumberUtils.safe_subtract(new_usage, old_usage)
         
         # Check if we have enough stock for the change
-        if storage_item.当前库存量 - usage_difference < 0:
+        if NumberUtils.safe_subtract(storage_item.当前库存量, usage_difference) < 0:
             raise ValueError("Insufficient stock for this update")
+        
+        # Parse date if provided
+        usage_date = usage_data.get('使用日期', usage_record.使用日期)
+        if isinstance(usage_date, str):
+            parsed_date = DateParser.parse_date(usage_date)
+            if parsed_date:
+                usage_date = parsed_date
+            else:
+                raise ValueError("Invalid date format")
         
         # Update usage record
         usage_record.使用人 = usage_data.get('使用人', usage_record.使用人)
-        usage_record.使用日期 = usage_data.get('使用日期', usage_record.使用日期)
+        usage_record.使用日期 = usage_date
         usage_record.使用量 = new_usage
         usage_record.单位 = usage_data.get('单位', usage_record.单位)
         usage_record.备注 = usage_data.get('备注', usage_record.备注)
         
         # Update storage inventory
-        storage_item.当前库存量 -= usage_difference
+        storage_item.当前库存量 = NumberUtils.safe_subtract(storage_item.当前库存量, usage_difference)
         usage_record.余量 = storage_item.当前库存量
         storage_item.更新时间 = datetime.utcnow()
         usage_record.更新时间 = datetime.utcnow()
@@ -277,7 +284,7 @@ class StorageService:
             
             # Calculate new inventory level
             original_inventory = storage_item.当前库存量
-            restored_inventory = original_inventory + usage_record.使用量
+            restored_inventory = NumberUtils.safe_add(original_inventory, usage_record.使用量)
             
             logger.info(f"Restoring inventory: {original_inventory}{storage_item.单位} + {usage_record.使用量}{storage_item.单位} = {restored_inventory}{storage_item.单位}")
             
@@ -460,13 +467,10 @@ class StorageService:
         for item in storage_items:
             try:
                 original_quantity, unit = StorageService.parse_quantity(item.数量及数量单位)
-                original_in_grams = StorageService.convert_to_grams(original_quantity, unit)
-
-                # Convert current stock to grams using its stored unit for a fair comparison
-                current_in_grams = StorageService.convert_to_grams(item.当前库存量, item.单位)
-
-                if original_in_grams > 0:
-                    percentage = (current_in_grams / original_in_grams) * 100
+                
+                # Only compare if units match
+                if unit == item.单位 and original_quantity > 0:
+                    percentage = (item.当前库存量 / original_quantity) * 100
                     if percentage <= threshold_percentage:
                         low_stock_items.append(item)
             except ValueError:
@@ -480,49 +484,12 @@ class StorageService:
         """Parse quantity string like '100g', '50ml', '2kg'"""
         match = re.match(r'([0-9.]+)\s*([a-zA-Zμ]+)', quantity_str.strip())
         if match:
-            quantity = float(match.group(1))
+            quantity = NumberUtils.safe_float(match.group(1))
             unit = match.group(2).lower()
             return quantity, unit
         raise ValueError(f"Invalid quantity format: {quantity_str}")
     
-    @staticmethod
-    def convert_to_grams(quantity: float, unit: str) -> float:
-        """Convert different units to grams"""
-        conversion_factors = {
-            'g': 1.0,
-            'kg': 1000.0,
-            'mg': 0.001,
-            'ml': 1.0,  # Assume 1ml = 1g for simplicity
-            'l': 1000.0,
-            'μl': 0.001,
-            'ul': 0.001
-        }
-        
-        factor = conversion_factors.get(unit, 1.0)
-        return quantity * factor
-    
-    @staticmethod
-    def convert_between_units(amount: float, from_unit: str, to_unit: str) -> float:
-        """Convert amount between different units"""
-        if from_unit == to_unit:
-            return amount
-        
-        # Convert to grams first, then to target unit
-        amount_in_grams = StorageService.convert_to_grams(amount, from_unit)
-        
-        # Convert from grams to target unit
-        conversion_factors = {
-            'g': 1.0,
-            'kg': 1000.0,
-            'mg': 0.001,
-            'ml': 1.0,  # Assume 1ml = 1g for simplicity
-            'l': 1000.0,
-            'μl': 0.001,
-            'ul': 0.001
-        }
-        
-        target_factor = conversion_factors.get(to_unit, 1.0)
-        return amount_in_grams / target_factor
+
 
     @staticmethod
     def find_existing_storage_item(data: Dict[str, Any]) -> Optional[Storage]:
@@ -566,18 +533,16 @@ class StorageService:
 
     @staticmethod
     def add_quantity_to_storage_item(storage_item: Storage, amount: float, unit: str) -> Storage:
-        """Add quantity to an existing storage item, converting units if needed."""
+        """Add quantity to an existing storage item. Units must match."""
         # Ensure amount is positive
         if amount <= 0:
             raise ValueError('Merge amount must be positive')
 
-        # Convert incoming amount to the storage item's unit if necessary
-        amount_in_storage_unit = (
-            amount if unit == storage_item.单位
-            else StorageService.convert_between_units(amount, unit, storage_item.单位)
-        )
+        # Ensure units match
+        if unit != storage_item.单位:
+            raise ValueError(f'Unit mismatch: {unit} != {storage_item.单位}. Units must match for quantity addition.')
 
-        storage_item.当前库存量 = float(storage_item.当前库存量) + float(amount_in_storage_unit)
+        storage_item.当前库存量 = NumberUtils.safe_add(storage_item.当前库存量, amount)
         storage_item.更新时间 = datetime.utcnow()
         db.session.commit()
         return storage_item
@@ -592,6 +557,7 @@ class StorageService:
         
         # Parse quantity string (e.g., "100g", "50ml") 
         quantity, unit = StorageService.parse_quantity(data['数量及数量单位'])
+        quantity = NumberUtils.safe_float(quantity)
         
         # Keep original unit instead of converting to grams
         storage_item = Storage(
@@ -660,7 +626,7 @@ class StorageService:
                     errors.append(f"Storage item with ID {storage_id} not found")
                     continue
                 
-                storage_item.当前库存量 = float(new_quantity)
+                storage_item.当前库存量 = NumberUtils.safe_float(new_quantity)
                 storage_item.更新时间 = datetime.utcnow()
                 updated_count += 1
                 
