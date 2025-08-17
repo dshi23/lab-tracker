@@ -75,5 +75,17 @@ def main():
         print(f"\n❌ Server error: {e}")
         sys.exit(1)
 
+# Create Flask app instance for gunicorn
+app = create_app()
+
+# Initialize database for gunicorn
+with app.app_context():
+    try:
+        print("📦 Creating database tables...")
+        db.create_all()
+        print("✅ Database tables created successfully")
+    except Exception as e:
+        print(f"❌ Database initialization failed: {e}")
+
 if __name__ == '__main__':
     main() 

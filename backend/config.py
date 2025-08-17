@@ -25,16 +25,11 @@ class Config:
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     
     # CORS settings
-    CORS_ORIGINS = [
-        'http://localhost:3000', 
-        'http://localhost:5174', 
-        'http://127.0.0.1:5174'
-    ]
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5174,http://127.0.0.1:5174').split(',')
     
     # Rate limiting
-    # Format: semicolon-separated limits understood by flask-limiter, e.g. "200 per day;500 per hour"
-    RATELIMIT_DEFAULT = os.environ.get('RATELIMIT_DEFAULT', '2000 per day;500 per hour')
-    RATELIMIT_STORAGE_URL = os.environ.get('RATELIMIT_STORAGE_URL', 'memory://')
+    RATELIMIT_DEFAULT = "200 per day;50 per hour"
+    RATELIMIT_STORAGE_URL = "memory://"
     
     # Pagination
     RECORDS_PER_PAGE = 20

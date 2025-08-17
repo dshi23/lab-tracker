@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=your-secure-secret-key-here
+      - DATABASE_URL=sqlite:///lab_tracker_prod.db
+      - CORS_ORIGINS=http://localhost:3000,http://frontend:3000
+    volumes:
+      - ./backend/instance:/app/instance
+      - ./backend/uploads:/app/uploads
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+
