@@ -12,6 +12,8 @@ import subprocess
 from pathlib import Path
 
 from app import create_app, db
+from models import User, Personnel
+from flask_bcrypt import Bcrypt
 
 def ensure_directories():
     """Ensure required directories exist"""
@@ -28,12 +30,43 @@ def ensure_directories():
 
 
 def initialize_database(app):
-    """Initialize database tables and run migrations"""
+    """Initialize database tables and create admin user if needed"""
     with app.app_context():
         try:
             print("📦 Creating database tables...")
             db.create_all()
             print("✅ Database tables created successfully")
+            
+            # Check if admin user exists, create if not
+            admin_user = User.query.filter_by(username='admin').first()
+            if not admin_user:
+                print("👤 Creating admin user...")
+                bcrypt = Bcrypt()
+                password_hash = bcrypt.generate_password_hash('admin123').decode('utf-8')
+                
+                # Create admin user
+                admin_user = User(
+                    username='admin',
+                    password_hash=password_hash,
+                    is_active=True
+                )
+                db.session.add(admin_user)
+                db.session.flush()  # Get user ID
+                
+                # Create admin personnel
+                admin_personnel = Personnel(
+                    user_id=admin_user.id,
+                    name='管理员',
+                    is_active=True
+                )
+                db.session.add(admin_personnel)
+                db.session.commit()
+                
+                print("✅ Admin user created successfully!")
+                print("   Username: admin")
+                print("   Password: admin123")
+            else:
+                print("ℹ️  Admin user already exists")
                 
         except Exception as e:
             print(f"❌ Database initialization failed: {e}")
@@ -84,6 +117,38 @@ with app.app_context():
         print("📦 Creating database tables...")
         db.create_all()
         print("✅ Database tables created successfully")
+        
+        # Check if admin user exists, create if not
+        admin_user = User.query.filter_by(username='admin').first()
+        if not admin_user:
+            print("👤 Creating admin user...")
+            bcrypt = Bcrypt()
+            password_hash = bcrypt.generate_password_hash('admin123').decode('utf-8')
+            
+            # Create admin user
+            admin_user = User(
+                username='admin',
+                password_hash=password_hash,
+                is_active=True
+            )
+            db.session.add(admin_user)
+            db.session.flush()  # Get user ID
+            
+            # Create admin personnel
+            admin_personnel = Personnel(
+                user_id=admin_user.id,
+                name='管理员',
+                is_active=True
+            )
+            db.session.add(admin_personnel)
+            db.session.commit()
+            
+            print("✅ Admin user created successfully!")
+            print("   Username: admin")
+            print("   Password: admin123")
+        else:
+            print("ℹ️  Admin user already exists")
+            
     except Exception as e:
         print(f"❌ Database initialization failed: {e}")
 

@@ -10,15 +10,26 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_login import LoginManager
+from flask_bcrypt import Bcrypt
 import os
 import logging
 from datetime import date
 from werkzeug.exceptions import HTTPException
 
 # Import application components
-from models import db
+from models import db, User
 from routes import register_blueprints
 from config import config
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+bcrypt = Bcrypt()
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user for Flask-Login"""
+    return User.query.get(int(user_id))
 
 def create_app(config_name=None):
     """
@@ -69,6 +80,15 @@ def _init_extensions(app):
     CORS(app)
     db.init_app(app)
     Migrate(app, db)
+    
+    # Initialize Flask-Login
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = '请先登录'
+    login_manager.login_message_category = 'info'
+    
+    # Initialize Flask-Bcrypt
+    bcrypt.init_app(app)
 
 def _configure_logging(app):
     """Configure logging for the application"""

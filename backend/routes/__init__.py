@@ -13,6 +13,7 @@ from .storage import storage_bp
 from .inventory import inventory_bp
 from .analytics import analytics_bp
 from .import_export import import_export_bp
+from .auth import auth_bp
 
 # List of all blueprints for easy registration
 ALL_BLUEPRINTS = [
@@ -20,7 +21,8 @@ ALL_BLUEPRINTS = [
     storage_bp, 
     inventory_bp,
     analytics_bp,
-    import_export_bp
+    import_export_bp,
+    auth_bp
 ]
 
 def register_blueprints(app):
@@ -34,6 +36,7 @@ __all__ = [
     'inventory_bp',
     'analytics_bp',
     'import_export_bp',
+    'auth_bp',
     'ALL_BLUEPRINTS',
     'register_blueprints'
 ] 

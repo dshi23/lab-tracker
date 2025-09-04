@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
 import { useStorageApi } from '../hooks/useStorageApi';
+import { useAuth } from '../hooks/useAuth';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import SuccessDialog from '../components/ui/SuccessDialog';
 import { safeParseFloat, safeSubtract } from '../utils/numberUtils';
@@ -11,6 +12,7 @@ const UsageForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { personnel } = useAuth();
   const [error, setError] = useState(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [createdRecord, setCreatedRecord] = useState(null);
@@ -28,7 +30,7 @@ const UsageForm = () => {
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: {
-      '使用人': '',
+      '使用人': personnel?.name || '',
       '使用日期': new Date().toISOString().split('T')[0],
       '使用量': '',
       '备注': ''

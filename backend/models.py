@@ -1,8 +1,32 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import Index
+from flask_login import UserMixin
 
 db = SQLAlchemy()
+
+# User Authentication Model
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
+    
+    # Relationship to personnel
+    personnel = db.relationship('Personnel', backref='user', uselist=False)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'last_login': self.last_login.isoformat() if self.last_login else None
+        }
 
 # Storage Management Model
 class Storage(db.Model):
@@ -42,6 +66,7 @@ class UsageRecord(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     storage_id = db.Column(db.Integer, db.ForeignKey('storage.id'), nullable=True)  # Link to storage
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Link to user
     
     # Chinese field names as specified
     类型 = db.Column(db.String(100), nullable=False)  # Type
@@ -58,11 +83,14 @@ class UsageRecord(db.Model):
     创建时间 = db.Column(db.DateTime, default=datetime.utcnow)
     更新时间 = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Relationship to user
+    user = db.relationship('User', backref='usage_records')
     
     def to_dict(self):
         return {
             'id': self.id,
             'storage_id': self.storage_id,
+            'user_id': self.user_id,
             '类型': self.类型,
             '产品名': self.产品名,
             '数量及数量单位': self.数量及数量单位,
@@ -82,22 +110,16 @@ class Personnel(db.Model):
     __tablename__ = 'personnel'
     
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Link to user
     name = db.Column(db.String(100), nullable=False, unique=True)
-    department = db.Column(db.String(100))
-    role = db.Column(db.String(50))
-    email = db.Column(db.String(120))
-    phone = db.Column(db.String(20))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
         return {
             'id': self.id,
+            'user_id': self.user_id,
             'name': self.name,
-            'department': self.department,
-            'role': self.role,
-            'email': self.email,
-            'phone': self.phone,
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
