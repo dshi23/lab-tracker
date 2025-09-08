@@ -23,6 +23,7 @@ class StorageService:
         storage_item = Storage(
             类型=data['类型'],
             产品名=data['产品名'],
+            品牌=data.get('品牌'),
             数量及数量单位=data['数量及数量单位'],
             存放地=data['存放地'],
             CAS号=data.get('CAS号'),
@@ -55,6 +56,9 @@ class StorageService:
                 raise ValueError('Product with this name already exists')
             storage_item.产品名 = data['产品名']
             updated_fields.append('产品名')
+        if '品牌' in data:
+            storage_item.品牌 = data['品牌']
+            updated_fields.append('品牌')
         if '数量及数量单位' in data:
             quantity, unit = StorageService.parse_quantity(data['数量及数量单位'])
             # Only update current stock if it's not explicitly provided
@@ -481,11 +485,11 @@ class StorageService:
     
     @staticmethod
     def parse_quantity(quantity_str: str) -> Tuple[float, str]:
-        """Parse quantity string like '100g', '50ml', '2kg'"""
-        match = re.match(r'([0-9.]+)\s*([a-zA-Zμ]+)', quantity_str.strip())
+        """Parse quantity string like '100g', '50ml', '2kg', '10瓶', '5盒'"""
+        match = re.match(r'([0-9.]+)\s*([a-zA-Zμ\u4e00-\u9fa5]+)', quantity_str.strip())
         if match:
             quantity = NumberUtils.safe_float(match.group(1))
-            unit = match.group(2).lower()
+            unit = match.group(2)
             return quantity, unit
         raise ValueError(f"Invalid quantity format: {quantity_str}")
     
@@ -563,6 +567,7 @@ class StorageService:
         storage_item = Storage(
             类型=data['类型'],
             产品名=data['产品名'],
+            品牌=data.get('品牌'),
             数量及数量单位=data['数量及数量单位'],
             存放地=data['存放地'],
             CAS号=data.get('CAS号'),

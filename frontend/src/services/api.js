@@ -129,6 +129,15 @@ export const storageAPI = {
   getStorageByLocation: (location, params = {}) => 
     api.get(`/api/storage/by-location/${encodeURIComponent(location)}`, { params }),
   
+  // Get all storage locations
+  getStorageLocations: () => api.get('/api/storage/locations'),
+  
+  // Get all storage types
+  getStorageTypes: () => api.get('/api/storage/types'),
+  
+  // Get all storage brands
+  getStorageBrands: () => api.get('/api/storage/brands'),
+  
   // Import storage Excel file
   importStorageExcel: (file) => {
     const formData = new FormData()
@@ -159,31 +168,31 @@ export const storageAPI = {
 // Updated Usage Records API with inventory tracking
 export const usageRecordsAPI = {
   // Get paginated usage records
-  getUsageRecords: (params = {}) => api.get('/api/usage-records', { params }),
+  getUsageRecords: (params = {}) => api.get('/api/records', { params }),
   
   // Get single usage record
-  getUsageRecord: (id) => api.get(`/api/usage-records/${id}`),
+  getUsageRecord: (id) => api.get(`/api/records/${id}`),
   
   // Create usage record (with automatic inventory update)
-  createUsageRecord: (data) => api.post('/api/usage-records', data),
+  createUsageRecord: (data) => api.post('/api/records', data),
   
   // Update usage record (with inventory adjustment)
-  updateUsageRecord: (id, data) => api.put(`/api/usage-records/${id}`, data),
+  updateUsageRecord: (id, data) => api.put(`/api/records/${id}`, data),
   
   // Delete usage record (with inventory restoration)
-  deleteUsageRecord: (id) => api.delete(`/api/usage-records/${id}`),
+  deleteUsageRecord: (id) => api.delete(`/api/records/${id}`),
   
   // Get recent usage records
   getRecentUsageRecords: (limit = 10) => 
-    api.get('/api/usage-records/recent', { params: { limit } }),
+    api.get('/api/records/recent', { params: { limit } }),
   
   // Get usage records by personnel
   getUsageRecordsByPersonnel: (name, params = {}) => 
-    api.get(`/api/usage-records/by-personnel/${encodeURIComponent(name)}`, { params }),
+    api.get(`/api/records/by-personnel/${encodeURIComponent(name)}`, { params }),
   
   // Get usage records by product
   getUsageRecordsByProduct: (name, params = {}) => 
-    api.get(`/api/usage-records/by-product/${encodeURIComponent(name)}`, { params }),
+    api.get(`/api/records/by-product/${encodeURIComponent(name)}`, { params }),
 }
 
 // Inventory Analytics API

@@ -217,13 +217,13 @@ const Import = () => {
       ]
       
       if (!allowedTypes.includes(file.type)) {
-        setError('Please select a valid Excel or CSV file')
+        setError('请选择有效的Excel或CSV文件 • Please select a valid Excel or CSV file')
         return
       }
       
       // Validate file size (10MB max)
       if (file.size > 10 * 1024 * 1024) {
-        setError('File size must be less than 10MB')
+        setError('文件大小必须小于10MB • File size must be less than 10MB')
         return
       }
       
@@ -234,7 +234,7 @@ const Import = () => {
 
   const handlePreview = async () => {
     if (!selectedFile) {
-      setError('Please select a file to preview')
+      setError('请选择要预览的文件 • Please select a file to preview')
       return
     }
 
@@ -272,13 +272,13 @@ const Import = () => {
       setPreviewData(mockPreviewData)
       setShowPreview(true)
     } catch (error) {
-      setError('Failed to preview file')
+      setError('预览文件失败 • Failed to preview file')
     }
   }
 
   const handleImport = async () => {
     if (!selectedFile) {
-      setError('Please select a file to import')
+      setError('请选择要导入的文件 • Please select a file to import')
       return
     }
 
@@ -332,11 +332,14 @@ const Import = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Import/Export Data</h1>
-        <p className="text-gray-600">Import and export lab chemical usage records</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+            数据导入导出 <span className="text-lg font-normal text-gray-600">Import/Export Data</span>
+          </h1>
+          <p className="text-gray-600">导入和导出实验室化学品使用记录 • Import and export lab chemical usage records</p>
+        </div>
 
       {/* Messages */}
       {error && (
@@ -364,12 +367,14 @@ const Import = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Import Section */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Import Data</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            数据导入 <span className="text-base font-normal text-gray-600">Import Data</span>
+          </h2>
           
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select File
+                选择文件 <span className="font-normal text-gray-600">Select File</span>
               </label>
               <input
                 ref={fileInputRef}
@@ -380,14 +385,14 @@ const Import = () => {
                 className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 disabled:opacity-50"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Supported formats: Excel (.xlsx, .xls), CSV (.csv). Max size: 10MB
+                支持格式: Excel (.xlsx, .xls), CSV (.csv)。最大文件: 10MB
               </p>
             </div>
 
             {selectedFile && (
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  <strong>Selected file:</strong> {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                  <strong>已选择文件:</strong> {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                 </p>
               </div>
             )}
@@ -398,7 +403,7 @@ const Import = () => {
                 disabled={!selectedFile || isImporting}
                 className="btn-secondary flex-1 disabled:opacity-50"
               >
-                Preview Data
+                预览数据 Preview
               </button>
               
               <button
@@ -409,10 +414,10 @@ const Import = () => {
                 {isImporting ? (
                   <div className="flex items-center">
                     <LoadingSpinner size="sm" className="mr-2" />
-                    Importing...
+                    导入中...
                   </div>
                 ) : (
-                  'Import Data'
+                  '导入数据 Import'
                 )}
               </button>
             </div>
@@ -426,10 +431,10 @@ const Import = () => {
                 {downloadTemplateMutation.isLoading ? (
                   <div className="flex items-center">
                     <LoadingSpinner size="sm" className="mr-2" />
-                    Downloading...
+                    下载中...
                   </div>
                 ) : (
-                  'Download Template'
+                  '下载模板 Download Template'
                 )}
               </button>
             </div>
@@ -438,33 +443,35 @@ const Import = () => {
               <div className="space-y-2">
                 <ProgressBar 
                   progress={importProgress} 
-                  message={isImporting ? "Processing file..." : "Import complete!"} 
+                  message={isImporting ? "处理文件中..." : "导入完成!"} 
                 />
               </div>
             )}
           </div>
 
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Import Instructions:</h3>
+            <h3 className="text-sm font-medium text-gray-900 mb-2">导入说明 Import Instructions:</h3>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Download the template to see the required format</li>
-              <li>• Fill in your data following the template structure</li>
-              <li>• Save as Excel (.xlsx) or CSV format</li>
-              <li>• Preview your data before importing</li>
-              <li>• Upload the file to import your records</li>
-              <li>• Existing records will not be duplicated</li>
+              <li>• 下载模板查看所需格式</li>
+              <li>• 按照模板结构填写数据</li>
+              <li>• 保存为Excel或CSV格式</li>
+              <li>• 导入前预览数据</li>
+              <li>• 上传文件导入记录</li>
+              <li>• 现有记录不会重复</li>
             </ul>
           </div>
         </div>
 
         {/* Export Section */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Export Data</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            数据导出 <span className="text-base font-normal text-gray-600">Export Data</span>
+          </h2>
           
           <div className="space-y-4">
             <div>
               <p className="text-sm text-gray-600 mb-4">
-                Export all your lab records to Excel format for backup or analysis.
+                将所有实验室记录导出为Excel格式，用于备份或分析。
               </p>
             </div>
 
@@ -476,10 +483,10 @@ const Import = () => {
               {isExporting ? (
                 <div className="flex items-center justify-center">
                   <LoadingSpinner size="sm" className="mr-2" />
-                  Preparing Export...
+                  准备导出中...
                 </div>
               ) : (
-                'Export All Records'
+                '导出所有记录 Export All Records'
               )}
             </button>
 
@@ -487,20 +494,20 @@ const Import = () => {
               <div className="space-y-2">
                 <ProgressBar 
                   progress={exportProgress} 
-                  message={isExporting ? "Generating Excel file..." : "Export complete!"} 
+                  message={isExporting ? "生成Excel文件中..." : "导出完成!"} 
                 />
               </div>
             )}
           </div>
 
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Export Features:</h3>
+            <h3 className="text-sm font-medium text-gray-900 mb-2">导出功能 Export Features:</h3>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Exports all records in Excel format</li>
-              <li>• Includes all record fields and metadata</li>
-              <li>• File named with current date</li>
-              <li>• Compatible with Excel, Google Sheets, etc.</li>
-              <li>• Perfect for backup and data analysis</li>
+              <li>• 以Excel格式导出所有记录</li>
+              <li>• 包含所有记录字段和元数据</li>
+              <li>• 文件以当前日期命名</li>
+              <li>• 兼容Excel、Google Sheets等</li>
+              <li>• 完美用于备份和数据分析</li>
             </ul>
           </div>
         </div>
@@ -590,6 +597,7 @@ const Import = () => {
           handleImport()
         }}
       />
+      </div>
     </div>
   )
 }

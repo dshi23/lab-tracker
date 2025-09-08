@@ -50,7 +50,7 @@ const UsageForm = () => {
         // Invalidate and refetch relevant queries
         queryClient.invalidateQueries(['storage']);
         queryClient.invalidateQueries(['inventory']);
-        queryClient.invalidateQueries(['usage-records']);
+        queryClient.invalidateQueries(['records']);
         queryClient.invalidateQueries(['usage-history', id]);
         
         // Store the created record data for the success dialog

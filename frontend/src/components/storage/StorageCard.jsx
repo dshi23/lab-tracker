@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 
 const StorageCard = ({ item, onDelete, onEdit, onUse }) => {
+  const navigate = useNavigate();
   const getStockStatus = () => {
     // Parse original quantity to calculate percentage
     const originalMatch = item['数量及数量单位'].match(/([0-9.]+)/);
@@ -26,7 +28,8 @@ const StorageCard = ({ item, onDelete, onEdit, onUse }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+    <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200 cursor-pointer hover:shadow-lg transition-shadow"
+         onClick={() => navigate(`/storage/${item.id}`)}>
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1 min-w-0 pr-3">
           <h3 className="font-semibold text-lg text-gray-900 mb-1 break-words leading-tight">
@@ -39,18 +42,18 @@ const StorageCard = ({ item, onDelete, onEdit, onUse }) => {
         <div className="flex space-x-2 flex-shrink-0">
           {onUse && (
             <button
-              onClick={() => onUse(item)}
-              className="text-green-600 hover:text-green-700 p-1 rounded transition-colors"
-              title="使用"
+              onClick={(e) => { e.stopPropagation(); onUse(item); }}
+              className="text-green-600 hover:text-green-700 p-2 rounded-lg bg-green-50 hover:bg-green-100 transition-all duration-200"
+              title="记录使用"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
             </button>
           )}
           {onEdit && (
             <button
-              onClick={() => onEdit(item)}
+              onClick={(e) => { e.stopPropagation(); onEdit(item); }}
               className="text-blue-600 hover:text-blue-700 p-1 rounded transition-colors"
               title="编辑"
             >
@@ -61,7 +64,7 @@ const StorageCard = ({ item, onDelete, onEdit, onUse }) => {
           )}
           {onDelete && (
             <button
-              onClick={() => onDelete(item.id)}
+              onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
               className="text-red-600 hover:text-red-700 p-1 rounded transition-colors"
               title="删除"
             >
@@ -84,6 +87,12 @@ const StorageCard = ({ item, onDelete, onEdit, onUse }) => {
             {parseFloat(item['当前库存量']).toFixed(2)}{item['单位'] || ''}
           </span>
         </div>
+        {item['品牌'] && (
+          <div className="flex justify-between">
+            <span className="text-gray-600">品牌:</span>
+            <span className="font-medium break-words text-right">{item['品牌']}</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span className="text-gray-600">存放地:</span>
           <span className="font-medium break-words text-right">{item['存放地']}</span>

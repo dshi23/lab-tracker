@@ -19,7 +19,7 @@ def get_storage_items():
     return list_endpoint(
         model=Storage,
         schema_func=lambda x: x.to_dict(),
-        search_columns=['产品名', '类型', '存放地', 'CAS号']
+        search_columns=['产品名', '类型', '品牌', '存放地', 'CAS号']
     )
         
         
@@ -452,6 +452,69 @@ def get_storage_by_location(location):
         
     except Exception as e:
         logger.error(f"Error getting storage by location: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@storage_bp.route('/api/storage/locations', methods=['GET'])
+def get_storage_locations():
+    """Get all distinct storage locations that have been used"""
+    try:
+        # Get all distinct storage locations
+        locations = db.session.query(Storage.存放地).distinct().all()
+        location_list = [location[0] for location in locations if location[0]]
+        
+        # Sort locations alphabetically
+        location_list.sort()
+        
+        return jsonify({
+            'success': True,
+            'locations': location_list,
+            'count': len(location_list)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting storage locations: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@storage_bp.route('/api/storage/types', methods=['GET'])
+def get_storage_types():
+    """Get all distinct storage types that have been used"""
+    try:
+        # Get all distinct storage types
+        types = db.session.query(Storage.类型).distinct().all()
+        type_list = [type_item[0] for type_item in types if type_item[0]]
+        
+        # Sort types alphabetically
+        type_list.sort()
+        
+        return jsonify({
+            'success': True,
+            'types': type_list,
+            'count': len(type_list)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting storage types: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@storage_bp.route('/api/storage/brands', methods=['GET'])
+def get_storage_brands():
+    """Get all distinct storage brands that have been used"""
+    try:
+        # Get all distinct storage brands
+        brands = db.session.query(Storage.品牌).distinct().all()
+        brand_list = [brand[0] for brand in brands if brand[0]]
+        
+        # Sort brands alphabetically
+        brand_list.sort()
+        
+        return jsonify({
+            'success': True,
+            'brands': brand_list,
+            'count': len(brand_list)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting storage brands: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @storage_bp.route('/api/storage/import', methods=['POST'])

@@ -35,6 +35,7 @@ class Storage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     类型 = db.Column(db.String(100), nullable=False, index=True)  # Type (化学品, 试剂, etc.)
     产品名 = db.Column(db.String(200), nullable=False, index=True)  # Product Name
+    品牌 = db.Column(db.String(100), nullable=True, index=True)  # Brand
     数量及数量单位 = db.Column(db.String(50), nullable=False)  # Quantity with Unit (e.g., "100g", "50ml")
     存放地 = db.Column(db.String(100), nullable=False)  # Storage Location
     CAS号 = db.Column(db.String(50), nullable=True, index=True)  # CAS Number
@@ -51,6 +52,7 @@ class Storage(db.Model):
             'id': self.id,
             '类型': self.类型,
             '产品名': self.产品名,
+            '品牌': self.品牌,
             '数量及数量单位': self.数量及数量单位,
             '存放地': self.存放地,
             'CAS号': self.CAS号,

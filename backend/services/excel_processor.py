@@ -13,26 +13,28 @@ logger = logging.getLogger(__name__)
 class ExcelProcessor:
     """Service class for processing Excel files with storage-integrated usage records"""
     
-    # Expected column mappings for new storage-integrated format
+    # Expected column mappings for current Chinese schema
     COLUMN_MAPPINGS = {
-        'type': ['类型', 'Type'],
-        'product_name': ['产品名', 'Product Name', 'product_name', 'chemical_name', 'chemical'],
-        'cas_number': ['CAS号', 'CAS Number', 'cas_number', 'cas'],
-        'location': ['存放地', 'Location', 'location', 'place'],
-        'usage_date': ['使用日期', 'Usage Date', 'usage_date', 'date'],
-        'personnel': ['使用人', 'Personnel', 'personnel', 'user'],
-        'usage_amount_g': ['使用量_g', 'Usage Amount (g)', 'usage_amount_g', 'used_g', '使用量'],
-        'remaining_g': ['余量_g', 'Remaining (g)', 'remaining_g', 'left_g', '余量'],
-        'notes': ['备注', 'Notes', 'notes', 'comment'],
+        '类型': ['类型', 'Type', 'type'],
+        '产品名': ['产品名', 'Product Name', 'product_name', 'chemical_name', 'chemical'],
+        '数量及数量单位': ['数量及数量单位', 'Quantity', 'quantity', 'original_quantity'],
+        '存放地': ['存放地', 'Location', 'location', 'place'],
+        'CAS号': ['CAS号', 'CAS Number', 'cas_number', 'cas'],
+        '使用人': ['使用人', 'Personnel', 'personnel', 'user'],
+        '使用日期': ['使用日期', 'Usage Date', 'usage_date', 'date'],
+        '使用量': ['使用量', 'Usage Amount', 'usage_amount', 'used'],
+        '余量': ['余量', 'Remaining', 'remaining', 'left'],
+        '单位': ['单位', 'Unit', 'unit'],
+        '备注': ['备注', 'Notes', 'notes', 'comment'],
     }
 
     @staticmethod
     def normalize_column_names(df: pd.DataFrame) -> pd.DataFrame:
         column_mapping = {}
         for col in df.columns:
-            col_lower = str(col).strip().lower()
+            col_str = str(col).strip()
             for standard_name, variations in ExcelProcessor.COLUMN_MAPPINGS.items():
-                if any(var.lower() in col_lower for var in variations):
+                if col_str in variations:
                     column_mapping[col] = standard_name
                     break
         df = df.rename(columns=column_mapping)
@@ -41,34 +43,41 @@ class ExcelProcessor:
     @staticmethod
     def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         df = df.dropna(how='all')
-        string_columns = ['type', 'product_name', 'cas_number', 'location', 'personnel', 'notes']
+        string_columns = ['类型', '产品名', '数量及数量单位', '存放地', 'CAS号', '使用人', '单位', '备注']
         for col in string_columns:
             if col in df.columns:
                 df[col] = df[col].fillna('')
-        # Parse usage_date
-        if 'usage_date' in df.columns:
-            df['usage_date'] = df['usage_date'].apply(
+        
+        # Parse usage date
+        if '使用日期' in df.columns:
+            df['使用日期'] = df['使用日期'].apply(
                 lambda x: DateParser.parse_date(str(x)) if pd.notna(x) else None
             )
+        
         # Fill numeric columns
-        for col in ['usage_amount_g', 'remaining_g']:
+        for col in ['使用量', '余量']:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+        
         return df
 
     @staticmethod
     def validate_record(record: Dict[str, Any]) -> Tuple[bool, List[str]]:
         errors = []
-        required_fields = ['type', 'product_name', 'cas_number', 'location', 'usage_date', 'personnel', 'usage_amount_g']
+        required_fields = ['类型', '产品名', '存放地', '使用日期', '使用人', '使用量']
         for field in required_fields:
             if not record.get(field):
                 errors.append(f"Missing required field: {field}")
-        if record.get('usage_date') and not isinstance(record['usage_date'], date):
-            errors.append("Invalid date format for usage_date")
-        if 'usage_amount_g' in record and (not isinstance(record['usage_amount_g'], (int, float)) or record['usage_amount_g'] < 0):
-            errors.append("Invalid usage_amount_g value")
-        if 'remaining_g' in record and (not isinstance(record['remaining_g'], (int, float)) or record['remaining_g'] < 0):
-            errors.append("Invalid remaining_g value")
+        
+        if record.get('使用日期') and not isinstance(record['使用日期'], date):
+            errors.append("Invalid date format for 使用日期")
+        
+        if '使用量' in record and (not isinstance(record['使用量'], (int, float)) or record['使用量'] < 0):
+            errors.append("Invalid 使用量 value")
+        
+        if '余量' in record and (not isinstance(record['余量'], (int, float)) or record['余量'] < 0):
+            errors.append("Invalid 余量 value")
+        
         return len(errors) == 0, errors
 
     @staticmethod
@@ -140,23 +149,27 @@ class ExcelProcessor:
                 {
                     '类型': '化学品',
                     '产品名': '盐酸',
-                    'CAS号': '7647-01-0',
+                    '数量及数量单位': '100ml',
                     '存放地': '化学品柜A',
-                    '使用日期': '2025-01-15',
+                    'CAS号': '7647-01-0',
                     '使用人': '张三',
-                    '使用量_g': 5,
-                    '余量_g': 95,
+                    '使用日期': '2025-01-15',
+                    '使用量': 5,
+                    '余量': 95,
+                    '单位': 'ml',
                     '备注': '滴定实验'
                 },
                 {
-                    '类型': '酶',
+                    '类型': '化学品',
                     '产品名': '胰蛋白酶',
+                    '数量及数量单位': '50ml',
+                    '存放地': '4°C冰箱B',
                     'CAS号': '9002-07-7',
-                    '存放地': '冷藏柜B',
-                    '使用日期': '2025-01-16',
                     '使用人': '李四',
-                    '使用量_g': 2,
-                    '余量_g': 48,
+                    '使用日期': '2025-01-16',
+                    '使用量': 2,
+                    '余量': 48,
+                    '单位': 'ml',
                     '备注': '细胞消化'
                 }
             ]
@@ -179,4 +192,10 @@ class ExcelProcessor:
             return True
         except Exception as e:
             logger.error(f"Error creating sample template: {str(e)}")
-            return False 
+            return False
+    
+    @staticmethod
+    def allowed_file(filename: str, allowed_extensions: set) -> bool:
+        """Check if file has allowed extension"""
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in allowed_extensions 

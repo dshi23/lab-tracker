@@ -89,10 +89,13 @@ export const useStorageApi = () => {
     request(() => ApiService.get('/api/storage/available', { q, limit }));
 
   const getUsageRecords = (params = {}) =>
-    request(() => ApiService.get('/api/usage-records', params));
+    request(() => ApiService.get('/api/records', params));
 
   const bulkUpdateStorage = (updates) =>
     request(() => ApiService.post('/api/storage/bulk-update', { updates }));
+
+  const getStorageTypes = () =>
+    request(() => ApiService.get('/api/storage/types'));
 
   return {
     loading,
@@ -113,6 +116,7 @@ export const useStorageApi = () => {
     getInventoryTrends,
     bulkUpdateStorage,
     searchAvailableStorage,
-    getUsageRecords
+    getUsageRecords,
+    getStorageTypes
   };
 }; 

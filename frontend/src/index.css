@@ -95,6 +95,57 @@
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  /* Enhanced glass morphism effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20;
+  }
+  
+  .glass-dark {
+    @apply bg-gray-900/80 backdrop-blur-md border border-gray-700/30;
+  }
+
+  /* Improved focus styles for accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white;
+  }
+
+  .focus-ring-dark {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-gray-900;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .card {
+      @apply border-2 border-gray-900;
+    }
+    
+    .btn-primary {
+      @apply border-2 border-primary-800;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Custom gradient backgrounds */
+  .gradient-mesh {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .gradient-cool {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+  }
+  
+  .gradient-warm {
+    background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+  }
 }
 
 /* Mobile-specific styles */

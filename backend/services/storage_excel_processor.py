@@ -19,6 +19,7 @@ class StorageExcelProcessor:
     STORAGE_COLUMN_MAPPINGS = {
         '类型': ['类型', 'Type', 'type', '产品类型', 'Product Type'],
         '产品名': ['产品名', 'Product Name', 'product_name', 'name', '名称'],
+        '品牌': ['品牌', 'Brand', 'brand', 'manufacturer', '制造商'],
         '数量及数量单位': ['数量及数量单位', 'Quantity', 'quantity', '数量', '原始数量'],
         '存放地': ['存放地', 'Storage Location', 'location', '位置', '存储位置'],
         'CAS号': ['CAS号', 'CAS Number', 'cas', 'cas_number', 'CAS']
@@ -54,7 +55,7 @@ class StorageExcelProcessor:
             
             # Expected columns
             required_columns = ['类型', '产品名', '数量及数量单位', '存放地']
-            optional_columns = ['CAS号']
+            optional_columns = ['品牌', 'CAS号']
             
             # Validate required columns
             missing_columns = [col for col in required_columns if col not in df.columns]
@@ -85,6 +86,12 @@ class StorageExcelProcessor:
                         '存放地': str(row['存放地']).strip(),
                     }
                     
+                    # Handle optional brand
+                    if '品牌' in df.columns and pd.notna(row['品牌']):
+                        storage_data['品牌'] = str(row['品牌']).strip()
+                    else:
+                        storage_data['品牌'] = None
+                    
                     # Handle optional CAS number
                     if 'CAS号' in df.columns and pd.notna(row['CAS号']):
                         storage_data['CAS号'] = str(row['CAS号']).strip()
@@ -93,7 +100,7 @@ class StorageExcelProcessor:
                     
                     # Validate required fields are not empty
                     for field, value in storage_data.items():
-                        if field != 'CAS号' and (not value or value == 'nan'):
+                        if field not in ['品牌', 'CAS号'] and (not value or value == 'nan'):
                             raise ValueError(f"Required field '{field}' is empty")
                     
                     # Validate quantity format and parse (store parsed for later)
@@ -165,6 +172,7 @@ class StorageExcelProcessor:
                             create_payload = {
                                 '类型': row_data['类型'],
                                 '产品名': new_name,
+                                '品牌': row_data.get('品牌'),
                                 '数量及数量单位': f"{row_data['parsed_qty']}{row_data['parsed_unit']}",
                                 '存放地': row_data['存放地'],
                                 'CAS号': row_data.get('CAS号')
@@ -178,6 +186,7 @@ class StorageExcelProcessor:
                         create_payload = {
                             '类型': row_data['类型'],
                             '产品名': base_name,
+                            '品牌': row_data.get('品牌'),
                             '数量及数量单位': f"{row_data['parsed_qty']}{row_data['parsed_unit']}",
                             '存放地': row_data['存放地'],
                             'CAS号': row_data.get('CAS号')
@@ -217,10 +226,12 @@ class StorageExcelProcessor:
                 data.append({
                     '类型': item.类型,
                     '产品名': item.产品名,
+                    '品牌': item.品牌 or '',
                     '数量及数量单位': item.数量及数量单位,
                     '存放地': item.存放地,
                     'CAS号': item.CAS号 or '',
-                    '当前库存量(g)': round(item.当前库存量, 3),
+                    '当前库存量': f"{item.当前库存量}{item.单位}" if item.单位 else str(item.当前库存量),
+                    '创建时间': item.创建时间.strftime('%Y-%m-%d %H:%M:%S') if item.创建时间 else '',
                     '更新时间': item.更新时间.strftime('%Y-%m-%d %H:%M:%S') if item.更新时间 else ''
                 })
             
@@ -261,13 +272,15 @@ class StorageExcelProcessor:
                 {
                     '类型': '化学品',
                     '产品名': 'Anti-β-actin',
+                    '品牌': 'Sigma-Aldrich',
                     '数量及数量单位': '100μl',
                     '存放地': '4°C冰箱A',
                     'CAS号': '123-45-6'
                 },
                 {
-                    '类型': '试剂',
+                    '类型': '化学品',
                     '产品名': 'TBST缓冲液',
+                    '品牌': 'Thermo Fisher',
                     '数量及数量单位': '500ml',
                     '存放地': '室温试剂柜',
                     'CAS号': '789-12-3'
@@ -275,6 +288,7 @@ class StorageExcelProcessor:
                 {
                     '类型': '化学品',
                     '产品名': 'DMSO',
+                    '品牌': 'Merck',
                     '数量及数量单位': '100ml',
                     '存放地': '有机试剂柜',
                     'CAS号': '67-68-5'
@@ -353,6 +367,7 @@ class StorageExcelProcessor:
                 preview_data.append({
                     '类型': str(row.get('类型', '')),
                     '产品名': str(row.get('产品名', '')),
+                    '品牌': str(row.get('品牌', '')) if pd.notna(row.get('品牌')) else '',
                     '数量及数量单位': str(row.get('数量及数量单位', '')),
                     '存放地': str(row.get('存放地', '')),
                     'CAS号': str(row.get('CAS号', '')) if pd.notna(row.get('CAS号')) else ''

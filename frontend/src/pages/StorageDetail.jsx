@@ -163,6 +163,13 @@ const StorageDetail = () => {
             <p className="text-lg text-gray-900">{item['类型']}</p>
           </div>
           
+          {item['品牌'] && (
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">品牌</label>
+              <p className="text-lg text-gray-900">{item['品牌']}</p>
+            </div>
+          )}
+          
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">原始数量</label>
             <p className="text-lg text-gray-900">{item['数量及数量单位']}</p>

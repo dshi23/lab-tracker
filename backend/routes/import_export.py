@@ -98,16 +98,19 @@ def import_excel():
             
             for record_data in valid_records:
                 try:
+                    # Create usage record with current Chinese field names
                     record = UsageRecord(
-                        antibody_name=record_data['antibody_name'],
-                        dilution_ratio=record_data['dilution_ratio'],
-                        dilution_type=record_data['dilution_type'],
-                        volume_used=record_data['volume_used'],
-                        config_date=record_data['config_date'],
-                        personnel=record_data['personnel'],
-                        notes=record_data.get('notes', ''),
-                        experiment_name=record_data.get('experiment_name', ''),
-                        batch_number=record_data.get('batch_number', '')
+                        类型=record_data.get('类型', ''),
+                        产品名=record_data.get('产品名', ''),
+                        数量及数量单位=record_data.get('数量及数量单位', ''),
+                        存放地=record_data.get('存放地', ''),
+                        CAS号=record_data.get('CAS号'),
+                        使用人=record_data.get('使用人', ''),
+                        使用日期=record_data.get('使用日期'),
+                        使用量=record_data.get('使用量', 0),
+                        余量=record_data.get('余量', 0),
+                        单位=record_data.get('单位', ''),
+                        备注=record_data.get('备注', '')
                     )
                     
                     db.session.add(record)
@@ -268,15 +271,17 @@ def sync_offline_data():
                 # Check if record already exists (by some unique identifier)
                 # For now, we'll create new records
                 record = UsageRecord(
-                    antibody_name=record_data['antibody_name'],
-                    dilution_ratio=record_data['dilution_ratio'],
-                    dilution_type=record_data['dilution_type'],
-                    volume_used=record_data['volume_used'],
-                    config_date=record_data['config_date'],
-                    personnel=record_data['personnel'],
-                    notes=record_data.get('notes', ''),
-                    experiment_name=record_data.get('experiment_name', ''),
-                    batch_number=record_data.get('batch_number', '')
+                    类型=record_data.get('类型', ''),
+                    产品名=record_data.get('产品名', ''),
+                    数量及数量单位=record_data.get('数量及数量单位', ''),
+                    存放地=record_data.get('存放地', ''),
+                    CAS号=record_data.get('CAS号'),
+                    使用人=record_data.get('使用人', ''),
+                    使用日期=record_data.get('使用日期'),
+                    使用量=record_data.get('使用量', 0),
+                    余量=record_data.get('余量', 0),
+                    单位=record_data.get('单位', ''),
+                    备注=record_data.get('备注', '')
                 )
                 
                 db.session.add(record)

@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { format } from 'date-fns'
 
 const SuccessDialog = ({ 
   isOpen, 
@@ -100,7 +101,7 @@ const SuccessDialog = ({
                 {recordData.使用日期 && (
                   <div className="flex justify-between">
                     <span>Date:</span>
-                    <span className="font-medium">{new Date(recordData.使用日期).toLocaleDateString()}</span>
+                    <span className="font-medium">{format(new Date(recordData.使用日期), 'yyyy/MM/dd')}</span>
                   </div>
                 )}
               </div>

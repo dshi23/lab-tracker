@@ -83,7 +83,7 @@ const RecordDetail = () => {
 
   const formatDate = (dateString) => {
     try {
-      return format(new Date(dateString), 'MMMM dd, yyyy')
+      return format(new Date(dateString), 'yyyy/MM/dd')
     } catch {
       return dateString
     }

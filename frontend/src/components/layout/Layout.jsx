@@ -69,7 +69,7 @@ const Layout = ({ children }) => {
       {/* Main Content */}
       <main className={`transition-all duration-300 ${
         isMobile 
-          ? 'pt-16 pb-20' // Space for header and bottom nav
+          ? 'pt-16 pb-24' // Space for header and bottom nav (increased for better spacing)
           : 'ml-64' // Space for sidebar
       }`}>
         <div className="mobile-container tablet-container desktop-container">
