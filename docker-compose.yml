@@ -2,25 +2,21 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ${VECR}/lab1-backend:latest
     ports:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
-      - SECRET_KEY=your-secure-secret-key-here
+      - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=sqlite:///lab_tracker_prod.db
-      - CORS_ORIGINS=http://localhost:3000,http://frontend:3000
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://frontend:3000}
     volumes:
-      - ./backend/instance:/app/instance
-      - ./backend/uploads:/app/uploads
+      - ./backend/instance:/app/instance:z
+      - ./backend/uploads:/app/uploads:z
     restart: unless-stopped
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ${VECR}/lab1-frontend:latest
     ports:
       - "3000:3000"
     depends_on:
